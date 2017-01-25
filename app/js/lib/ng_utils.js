@@ -1239,8 +1239,8 @@ angular.module('izhukov.utils', [])
     var spotifyRegExp = /(https?:\/\/(open\.spotify\.com|play\.spotify\.com|spoti\.fi)\/(.+)|spotify:(.+))/i
 
     var markdownTestRegExp = /[`_*@]/
-    var markdownRegExp = /(^|\s)(````?)([\s\S]+?)(````?)([\s\n\.,:?!;]|$)|(^|\s)(`|\*\*|__)([^\n]+?)\7([\s\.,:?!;]|$)|@(\d+)\s*\((.+?)\)/
-
+    var markdownRegExp = /(````?)([\s\S]+?)(````?)|([\*\_]{2})([\s\S]+?)(\4)|(`)([^\n]+?)(\7)|@(\d+)\s*\((.+?)\)/
+    
     var siteHashtags = {
       Telegram: 'tg://search_hashtag?hashtag={1}',
       Twitter: 'https://twitter.com/hashtag/{1}',
@@ -1421,7 +1421,7 @@ angular.module('izhukov.utils', [])
         matchIndex = rawOffset + match.index
         newText.push(raw.substr(0, match.index))
 
-        var text = (match[3] || match[8] || match[11])
+        var text = (match[2] || match[5] || match[8] || match[11])
         rawOffset -= text.length
         text = text.replace(/^\s+|\s+$/g, '')
         rawOffset += text.length
@@ -1429,27 +1429,31 @@ angular.module('izhukov.utils', [])
         if (text.match(/^`*$/)) {
           newText.push(match[0])
         }
-        else if (match[3]) { // pre
-          if (match[5] == '\n') {
-            match[5] = ''
-            rawOffset -= 1
-          }
-          newText.push(match[1] + text + match[5])
+        else if (match[2]) { // pre
+          newText.push(text)
           entities.push({
             _: 'messageEntityPre',
             language: '',
-            offset: matchIndex + match[1].length,
+            offset: matchIndex,
             length: text.length
           })
-          rawOffset -= match[2].length + match[4].length
-        } else if (match[7]) { // code
-          newText.push(match[6] + text + match[9])
+          rawOffset -= match[1].length + match[3].length
+        } else if (match[5]) { // bold | italic
+          newText.push(text)
+          entities.push({
+            _: markdownEntities[match[4]],
+            offset: matchIndex,
+            length: text.length
+          })
+          rawOffset -= match[4].length * 2
+        } else if (match[8]) { // code 
+          newText.push(text)
           entities.push({
             _: markdownEntities[match[7]],
-            offset: matchIndex + match[6].length,
+            offset: matchIndex,
             length: text.length
           })
-          rawOffset -= 2
+          rawOffset -= match[7].length * 2
         } else if (match[11]) { // custom mention
           newText.push(text)
           entities.push({
