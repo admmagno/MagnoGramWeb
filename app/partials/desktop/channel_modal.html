@@ -161,7 +161,9 @@
             <div class="md_modal_list_peer_name">
               <a class="md_modal_list_peer_name" my-peer-link="participant.user_id"></a>
             </div>
-            <div class="md_modal_list_peer_description" my-user-status="::participant.user_id" bot-chat-privacy="true">participant.user_id</div>
+            
+            <div ng-if="participant.kicked_by" class="md_modal_list_peer_description" my-date-to-string="::participant.date"></div>
+            <div ng-if="!participant.kicked_by" class="md_modal_list_peer_description" my-user-status="::participant.user_id" bot-chat-privacy="true"></div>
           </div>
 
         </div>

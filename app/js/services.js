@@ -1167,7 +1167,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       
       type = 'Recent'
       offset = 0
-      limit = AppChatsManager.isMegagroup(id) ? 50 : 200
+      limit = AppChatsManager.isMegagroup(id) ? 300 : 200
       if (typeof(arg1) !== 'undefined') {
           if (typeof(arg2) === 'undefined') { //Defined arg1?
               if (typeof(arg1) === 'string') type = arg1
