@@ -1222,7 +1222,21 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
-    function getChannelFull (id, force) {
+    function getChannelFull (id, arg1, arg2) { //Force and participantFilter
+      force = false
+      participantsFilter = 'Recent'
+      if(typeof(arg1)=="boolean"){
+        force = arg1;
+      }else if (typeof(arg1)=="string") {
+        participantsFilter = arg1;
+      }
+      if(typeof(arg2)=="boolean" && typeof(arg1)=="string"){
+        force = arg2;
+      }else if (typeof(arg2)=="string" && typeof(arg1)=="boolean") {
+        participantsFilter = arg2;
+      }
+      
+      
       if (chatsFull[id] !== undefined && !force) {
         return $q.when(chatsFull[id])
       }
@@ -1243,7 +1257,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         NotificationsManager.savePeerSettings(-id, fullChannel.notify_settings)
         var participantsPromise
         if (fullChannel.flags & 8) {
-          participantsPromise = getChannelParticipants(id).then(function (participants) {
+          participantsPromise = getChannelParticipants(id, participantsFilter).then(function (participants) {
             delete chatFullPromises[id]
             fullChannel.participants = {
               _: 'channelParticipants',

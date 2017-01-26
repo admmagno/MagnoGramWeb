@@ -3841,8 +3841,19 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, {})
     $scope.settings = {notifications: true}
     $scope.isMegagroup = AppChatsManager.isMegagroup($scope.chatID)
+    $scope.participantsFilter = 'Recent'
 
-    AppProfileManager.getChannelFull($scope.chatID, true).then(function (chatFull) {
+    $scope.$watch('participantsFilter', function (newValue, oldValue) {
+      if (newValue === oldValue) {
+        return false
+      }
+      AppProfileManager.getChannelFull($scope.chatID, true, newValue).then(function (chatFull) {
+        $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, chatFull)
+        $scope.$broadcast('ui_height')
+      })
+    })
+    
+    AppProfileManager.getChannelFull($scope.chatID, true, $scope.participantsFilter).then(function (chatFull) {
       $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, chatFull)
       $scope.$broadcast('ui_height')
 
