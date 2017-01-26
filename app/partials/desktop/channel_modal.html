@@ -156,6 +156,7 @@
             <a ng-if="participant.canKick" ng-click="kickFromChannel(participant.user_id)" class="md_modal_list_peer_action pull-right" my-i18n="group_modal_members_kick"></a>
 
             <a class="md_modal_list_peer_photo pull-left" my-peer-photolink="::participant.user_id" img-class="md_modal_list_peer_photo"></a>
+            <a ng-if="participant.kicked_by" class="md_modal_list_peer_photo pull-right" my-peer-photolink="::participant.kicked_by" img-class="md_modal_list_peer_photo"></a>
 
             <div class="md_modal_list_peer_name">
               <a class="md_modal_list_peer_name" my-peer-link="participant.user_id"></a>
