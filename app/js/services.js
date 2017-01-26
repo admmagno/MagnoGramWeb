@@ -1163,10 +1163,14 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
-    function getChannelParticipants (id) {
+    function getChannelParticipants (id, type) {
+      
+      if (typeof(type)==='undefined') type = 'Recent';
+      if(['Recent','Bots','Admins','Kicked'].indexOf(type)==-1) type ='Recent';
+      
       return MtpApiManager.invokeApi('channels.getParticipants', {
         channel: AppChatsManager.getChannelInput(id),
-        filter: {_: 'channelParticipantsRecent'},
+        filter: {_: 'channelParticipants' + type}, //Channel recents
         offset: 0,
         limit: AppChatsManager.isMegagroup(id) ? 50 : 200
       }).then(function (result) {
