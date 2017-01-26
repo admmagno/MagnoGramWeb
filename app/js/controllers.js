@@ -3849,8 +3849,6 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       }
       
       AppProfileManager.getChannelParticipants($scope.chatID, newValue).then(function (participants) {
-        console.log(participants)
-        alert("now")
         $scope.chatFull.participants.participants = participants
         $scope.$broadcast('ui_height')
       })

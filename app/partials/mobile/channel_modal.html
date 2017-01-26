@@ -146,7 +146,8 @@
             <div class="chat_modal_participant_name">
               <a my-peer-link="participant.user_id"></a>
             </div>
-            <div class="chat_modal_participant_status" my-user-status="::participant.user_id" bot-chat-privacy="true"></div>
+            <div ng-if="participant.kicked_by" class="chat_modal_participant_status" my-date-to-string="::participant.date"></div>
+            <div ng-if="!participant.kicked_by" class="chat_modal_participant_status" my-user-status="::participant.user_id" bot-chat-privacy="true"></div>
           </div>
 
         </div>

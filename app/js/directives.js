@@ -2687,7 +2687,48 @@ angular.module('myApp.directives', ['myApp.filters'])
       })
     }
   })
+  .directive('myDateToString', function ($filter,$rootScope) {
+    var dateFilter = $filter('date')
+    var ind = 0
+    var dates = {}
 
+    setInterval(updateAll, 90000)
+
+    $rootScope.$on('stateSynchronized', function () {
+      setTimeout(function () {
+        updateAll()
+      }, 100)
+    })
+
+    return {
+      link: link
+    }
+
+    function updateAll () {
+      angular.forEach(dates, function (update) {
+        update()
+      })
+    }
+
+    function link ($scope, element, attrs) {
+      var date
+      var curInd = ind++
+      var update = function () {
+        element
+          .html(dateFilter(date*1000,"dd.MM.yy HH:mm:ss"))
+      }
+
+      $scope.$watch(attrs.myDateToString, function (newDate) {
+        date = newDate
+        update()
+      })
+      dates[curInd] = update
+      $scope.$on('$destroy', function () {
+        delete dates[curInd]
+      })
+    }
+  })
+  
   .directive('myChatStatus', function ($rootScope, _, MtpApiManager, AppChatsManager, AppUsersManager, AppProfileManager) {
     var ind = 0
     var statuses = {}
