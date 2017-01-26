@@ -3847,8 +3847,11 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       if (newValue === oldValue) {
         return false
       }
-      AppProfileManager.getChannelFull($scope.chatID, true, newValue).then(function (chatFull) {
-        $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, chatFull)
+      
+      AppProfileManager.getChannelParticipants($scope.chatID, newValue).then(function (participants) {
+        console.log(participants)
+        alert("now")
+        $scope.chatFull.participants.participants = participants
         $scope.$broadcast('ui_height')
       })
     })

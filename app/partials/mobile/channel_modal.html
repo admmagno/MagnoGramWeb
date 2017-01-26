@@ -141,6 +141,7 @@
             <a ng-if="participant.canLeave" ng-click="leaveChannel()" class="chat_modal_participant_kick pull-right" my-i18n="group_modal_menu_leave"></a>
 
             <a class="chat_modal_participant_photo pull-left" my-peer-photolink="participant.user_id" img-class="chat_modal_participant_photo" status="true"></a>
+            <a ng-if="participant.kicked_by" class="md_modal_list_peer_photo pull-right" my-peer-photolink="::participant.kicked_by" img-class="md_modal_list_peer_photo"></a>
 
             <div class="chat_modal_participant_name">
               <a my-peer-link="participant.user_id"></a>

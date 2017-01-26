@@ -1163,7 +1163,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
-    function getChannelParticipants (id, arg1, arg2, arg3) {
+    function getChannelParticipants (id, arg1, arg2, arg3) { // typeFilter, offset, limit
       
       type = 'Recent'
       offset = 0
@@ -1198,26 +1198,27 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         AppUsersManager.saveApiUsers(result.users)
         var participants = result.participants
 
-        var chat = AppChatsManager.getChat(id)
-        if (!chat.pFlags.kicked && !chat.pFlags.left) {
-          var myID = AppUsersManager.getSelf().id
-          var myIndex = false
-          var myParticipant
-          for (var i = 0, len = participants.length; i < len; i++) {
-            if (participants[i].user_id == myID) {
-              myIndex = i
-              break
+        if(type=="Recent"){
+          var chat = AppChatsManager.getChat(id)
+          if (!chat.pFlags.kicked && !chat.pFlags.left) {
+            var myID = AppUsersManager.getSelf().id
+            var myIndex = false
+            var myParticipant
+            for (var i = 0, len = participants.length; i < len; i++) {
+              if (participants[i].user_id == myID) {
+                myIndex = i
+                break
+              }
             }
+            if (myIndex !== false) {
+              myParticipant = participants[i]
+              participants.splice(i, 1)
+            } else {
+              myParticipant = {_: 'channelParticipantSelf', user_id: myID}
+            }
+            participants.unshift(myParticipant)
           }
-          if (myIndex !== false) {
-            myParticipant = participants[i]
-            participants.splice(i, 1)
-          } else {
-            myParticipant = {_: 'channelParticipantSelf', user_id: myID}
-          }
-          participants.unshift(myParticipant)
         }
-
         return participants
       })
     }
@@ -1374,7 +1375,8 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       getProfile: getProfile,
       getChatInviteLink: getChatInviteLink,
       getChatFull: getChatFull,
-      getChannelFull: getChannelFull
+      getChannelFull: getChannelFull,
+      getChannelParticipants: getChannelParticipants
     }
   })
 
