@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Time: Fri Jan 27 2017 08:42:11 GMT+0100 (CET)
+# Time: Fri Jan 27 2017 09:06:04 GMT+0100 (CET)
 
 
 CACHE:
@@ -10,8 +10,6 @@ css/app.css
 css/desktop.css
 css/mobile.css
 js/app.js
-nacl/mtproto_crypto.nmf
-nacl/mtproto_crypto.pexe
 img/Manytabs.png
 img/Manytabs_2x.png
 img/Telegram.png
@@ -29,6 +27,8 @@ img/iphone_home120.png
 img/iphone_startup.png
 img/logo_share.png
 img/sound_a.mp3
+nacl/mtproto_crypto.nmf
+nacl/mtproto_crypto.pexe
 js/lib/bin_utils.js
 js/lib/crypto_worker.js
 js/lib/polyfill.js
