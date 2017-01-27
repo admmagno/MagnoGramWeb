@@ -1291,9 +1291,11 @@ a.md_modal_action:active,a.md_modal_action:focus,a.md_modal_action:hover{text-de
 a.tg_checkbox{color:#000;display:block;line-height:18px;padding:8px 0;margin:9px 0}
 a.tg_checkbox:hover{text-decoration:none}
 .tg_checkbox span.icon-checkbox-outer{float:right;display:inline-block;background-color:#e6e6e6;width:36px;height:14px;line-height:14px;vertical-align:middle;border-radius:8px;margin:3px 0;-webkit-transition:background-color ease-in-out .1s;transition:background-color ease-in-out .1s}
-.tg_checkbox.tg_checkbox_on span.icon-checkbox-outer{background-color:#bfd9ed}
+.tg_checkbox.tg_checkbox_on:not(.disabled) span.icon-checkbox-outer{background-color:#bfd9ed}
 .tg_checkbox i.icon-checkbox-inner{display:inline-block;background:#fff;width:20px;height:20px;border-radius:10px;overflow:hidden;float:left;margin-left:-1px;margin-top:-3px;-webkit-transition:all ease .1s;transition:all ease .1s;border:1px solid #E7E7E7;-webkit-box-shadow:0 0 1px rgba(0,0,0,.05);-moz-box-shadow:0 0 1px rgba(0,0,0,.05);box-shadow:0 0 1px rgba(0,0,0,.05)}
-.tg_checkbox.tg_checkbox_on i.icon-checkbox-inner{background:#6b9bc2;margin-left:16px;border:0;-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none}
+.tg_checkbox.tg_checkbox_on i.icon-checkbox-inner{margin-left:16px}
+.tg_checkbox.tg_checkbox_on:not(.disabled) i.icon-checkbox-inner{background:#6b9bc2;border:0;-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none}
+.tg_checkbox.tg_checkbox_on.disabled i.icon-checkbox-inner{background:#f2f2f2}
 .tg_checkbox_label{display:inline-block;line-height:18px;vertical-align:middle}
 .tg_radios_wrap{margin:15px 0}
 a.tg_radio{color:#000;display:block;line-height:20px;padding:5px 0 6px}
@@ -2007,3 +2009,5 @@ body .nano-pane{display:none}
 body .nano>.nano-content{position:static}
 body .tg_head_peer_info{text-align:center}
 body .im_history_col_wrap,body .tg_head_main_wrap{width:auto;max-width:700px;float:none;margin:0 auto}}
+.md_modal_admin_badge{display:block;position:absolute;width:12px;height:12px;border-radius:6px;background:#bfbfbf;color:#fff}
+.md_modal_admin_badge_creator{background:#64c270}
