@@ -1164,41 +1164,40 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     }
 
     function getChannelParticipants (id, arg1, arg2, arg3) { // typeFilter, offset, limit
-      
-      type = 'Recent'
-      offset = 0
-      limit = AppChatsManager.isMegagroup(id) ? 300 : 200
+      filter=false,offset=false,limit=false
       if (typeof(arg1) !== 'undefined') {
-          if (typeof(arg2) === 'undefined') { //Defined arg1?
-              if (typeof(arg1) === 'string') type = arg1
+          if (typeof(arg2) === 'undefined') {
+              if (typeof(arg1) === 'string') filter = arg1
               if (typeof(arg1) === 'number') offset = arg1
           } else {
-              if (typeof(arg2) === 'string') type = arg2
+              if (typeof(arg2) === 'string') filter = arg2
               if (typeof(arg2) === 'number') {
-                  if (typeof(arg1) === 'number') {
-                      limit = arg2;
-                  } else {
-                      offset = arg2
-                  }
+                  if (typeof(arg1) === 'number') limit = arg2;
+                  else offset = arg2
               }
               if (typeof(arg3) !== 'undefined') {
-                  if (typeof(arg3) === 'string') type = arg3
+                  if (typeof(arg3) === 'string') filter = arg3
                   if (typeof(arg3) === 'number' && typeof(arg2) === 'number') limit = arg3
               }
           }
       }
-      if (['Recent', 'Bots', 'Admins', 'Kicked'].indexOf(type) == -1) type = 'Recent';
       
+      
+      filter = {_: filter || 'channelParticipantsRecent'}
+      offset = offset || 0
+      limit = limit || (AppChatsManager.isMegagroup(id) ? 50 : 200)
+
+
       return MtpApiManager.invokeApi('channels.getParticipants', {
         channel: AppChatsManager.getChannelInput(id),
-        filter: {_: 'channelParticipants' + type},
+        filter: filter,
         offset: offset,
         limit: limit
       }).then(function (result) {
         AppUsersManager.saveApiUsers(result.users)
         var participants = result.participants
 
-        if(type=="Recent"){
+        if(filter=='channelParticipantsRecent'){
           var chat = AppChatsManager.getChat(id)
           if (!chat.pFlags.kicked && !chat.pFlags.left) {
             var myID = AppUsersManager.getSelf().id
@@ -1223,21 +1222,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
-    function getChannelFull (id, arg1, arg2) { //Force and participantFilter
-      force = false
-      participantsFilter = 'Recent'
-      if(typeof(arg1)=="boolean"){
-        force = arg1;
-      }else if (typeof(arg1)=="string") {
-        participantsFilter = arg1;
-      }
-      if(typeof(arg2)=="boolean" && typeof(arg1)=="string"){
-        force = arg2;
-      }else if (typeof(arg2)=="string" && typeof(arg1)=="boolean") {
-        participantsFilter = arg2;
-      }
-      
-      
+    function getChannelFull (id, force) {
       if (chatsFull[id] !== undefined && !force) {
         return $q.when(chatsFull[id])
       }
@@ -1258,7 +1243,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         NotificationsManager.savePeerSettings(-id, fullChannel.notify_settings)
         var participantsPromise
         if (fullChannel.flags & 8) {
-          participantsPromise = getChannelParticipants(id, participantsFilter).then(function (participants) {
+          participantsPromise = getChannelParticipants(id).then(function (participants) {
             delete chatFullPromises[id]
             fullChannel.participants = {
               _: 'channelParticipants',
@@ -4271,6 +4256,27 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     }
   })
 
+  .service('ManageUsersService', function ($rootScope, $modal) {
+    function show (options) {
+      options = options || {}
+
+      var scope = $rootScope.$new()
+      angular.extend(scope, options)
+
+      return $modal.open({
+        templateUrl: templateUrl('manage_users_modal'),
+        controller: 'ManageUsersModalController',
+        scope: scope,
+        windowClass: 'contacts_modal_window mobile_modal',
+        backdrop: 'single'
+      }).result
+    }
+
+    return {
+      show: show
+    }
+  })
+
   .service('ContactsSelectService', function ($rootScope, $modal) {
     function select (multiSelect, options) {
       options = options || {}
@@ -4450,17 +4456,11 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         }
         Storage.set({tgme_sync: {canRedirect: canRedirect, ts: ts}})
 
-        var script1 = $('<script>').appendTo('body')
+        var script = $('<script>').appendTo('body')
           .on('load error', function () {
-            script1.remove()
+            script.remove()
           })
           .attr('src', '//telegram.me/_websync_?authed=' + (canRedirect ? '1' : '0'))
-
-        var script2 = $('<script>').appendTo('body')
-          .on('load error', function () {
-            script2.remove()
-          })
-          .attr('src', '//t.me/_websync_?authed=' + (canRedirect ? '1' : '0'))
       })
     }
 
@@ -4560,8 +4560,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
           url: url
         }).then(function () {
           var target = '_blank'
-          if (url.search('https://telegram.me/') === 0 ||
-              url.search('https://t.me/') === 0) {
+          if (url.search('https://telegram.me/') === 0) {
             target = '_self'
           }
           window.open(url, target)
