@@ -1165,32 +1165,33 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
 
     function getChannelParticipants (id, arg1, arg2, arg3) { // typeFilter, offset, limit
       filter=false,offset=false,limit=false
+      
       if (typeof(arg1) !== 'undefined') {
-          if (typeof(arg2) === 'undefined') {
-              if (typeof(arg1) === 'string') filter = arg1
-              if (typeof(arg1) === 'number') offset = arg1
-          } else {
-              if (typeof(arg2) === 'string') filter = arg2
-              if (typeof(arg2) === 'number') {
-                  if (typeof(arg1) === 'number') limit = arg2;
-                  else offset = arg2
-              }
-              if (typeof(arg3) !== 'undefined') {
-                  if (typeof(arg3) === 'string') filter = arg3
-                  if (typeof(arg3) === 'number' && typeof(arg2) === 'number') limit = arg3
-              }
+        if (typeof(arg1) === 'string') filter = arg1
+        if (typeof(arg1) === 'number') offset = arg1
+        
+        if (typeof(arg2) !== 'undefined') {
+          if (typeof(arg2) === 'string' && filter!=false) filter = arg2
+          if (typeof(arg2) === 'number') {
+            if (offset) limit = arg2;
+            else offset = arg2
           }
+          
+          if (typeof(arg3) !== 'undefined') {
+            if (typeof(arg3) === 'string' && offset && limit && filter!=false) filter = arg3
+            if (typeof(arg3) === 'number' && offset && filter!=false) limit = arg3
+          }
+        }
       }
       
       
-      filter = {_: filter || 'channelParticipantsRecent'}
+      filter = filter || 'channelParticipantsRecent'
       offset = offset || 0
       limit = limit || (AppChatsManager.isMegagroup(id) ? 50 : 200)
-
-
+      
       return MtpApiManager.invokeApi('channels.getParticipants', {
         channel: AppChatsManager.getChannelInput(id),
-        filter: filter,
+        filter: {_: filter},
         offset: offset,
         limit: limit
       }).then(function (result) {
