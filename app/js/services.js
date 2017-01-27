@@ -1163,41 +1163,81 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
-    function getChannelParticipants (id) {
+    function getChannelParticipants (id, arg1, arg2, arg3) { // typeFilter, offset, limit
+      
+      type = 'Recent'
+      offset = 0
+      limit = AppChatsManager.isMegagroup(id) ? 300 : 200
+      if (typeof(arg1) !== 'undefined') {
+          if (typeof(arg2) === 'undefined') { //Defined arg1?
+              if (typeof(arg1) === 'string') type = arg1
+              if (typeof(arg1) === 'number') offset = arg1
+          } else {
+              if (typeof(arg2) === 'string') type = arg2
+              if (typeof(arg2) === 'number') {
+                  if (typeof(arg1) === 'number') {
+                      limit = arg2;
+                  } else {
+                      offset = arg2
+                  }
+              }
+              if (typeof(arg3) !== 'undefined') {
+                  if (typeof(arg3) === 'string') type = arg3
+                  if (typeof(arg3) === 'number' && typeof(arg2) === 'number') limit = arg3
+              }
+          }
+      }
+      if (['Recent', 'Bots', 'Admins', 'Kicked'].indexOf(type) == -1) type = 'Recent';
+      
       return MtpApiManager.invokeApi('channels.getParticipants', {
         channel: AppChatsManager.getChannelInput(id),
-        filter: {_: 'channelParticipantsRecent'},
-        offset: 0,
-        limit: AppChatsManager.isMegagroup(id) ? 50 : 200
+        filter: {_: 'channelParticipants' + type},
+        offset: offset,
+        limit: limit
       }).then(function (result) {
         AppUsersManager.saveApiUsers(result.users)
         var participants = result.participants
 
-        var chat = AppChatsManager.getChat(id)
-        if (!chat.pFlags.kicked && !chat.pFlags.left) {
-          var myID = AppUsersManager.getSelf().id
-          var myIndex = false
-          var myParticipant
-          for (var i = 0, len = participants.length; i < len; i++) {
-            if (participants[i].user_id == myID) {
-              myIndex = i
-              break
+        if(type=="Recent"){
+          var chat = AppChatsManager.getChat(id)
+          if (!chat.pFlags.kicked && !chat.pFlags.left) {
+            var myID = AppUsersManager.getSelf().id
+            var myIndex = false
+            var myParticipant
+            for (var i = 0, len = participants.length; i < len; i++) {
+              if (participants[i].user_id == myID) {
+                myIndex = i
+                break
+              }
             }
+            if (myIndex !== false) {
+              myParticipant = participants[i]
+              participants.splice(i, 1)
+            } else {
+              myParticipant = {_: 'channelParticipantSelf', user_id: myID}
+            }
+            participants.unshift(myParticipant)
           }
-          if (myIndex !== false) {
-            myParticipant = participants[i]
-            participants.splice(i, 1)
-          } else {
-            myParticipant = {_: 'channelParticipantSelf', user_id: myID}
-          }
-          participants.unshift(myParticipant)
         }
-
         return participants
       })
     }
 
-    function getChannelFull (id, force) {
+    function getChannelFull (id, arg1, arg2) { //Force and participantFilter
+      force = false
+      participantsFilter = 'Recent'
+      if(typeof(arg1)=="boolean"){
+        force = arg1;
+      }else if (typeof(arg1)=="string") {
+        participantsFilter = arg1;
+      }
+      if(typeof(arg2)=="boolean" && typeof(arg1)=="string"){
+        force = arg2;
+      }else if (typeof(arg2)=="string" && typeof(arg1)=="boolean") {
+        participantsFilter = arg2;
+      }
+      
+      
       if (chatsFull[id] !== undefined && !force) {
         return $q.when(chatsFull[id])
       }
@@ -1218,7 +1258,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         NotificationsManager.savePeerSettings(-id, fullChannel.notify_settings)
         var participantsPromise
         if (fullChannel.flags & 8) {
-          participantsPromise = getChannelParticipants(id).then(function (participants) {
+          participantsPromise = getChannelParticipants(id, participantsFilter).then(function (participants) {
             delete chatFullPromises[id]
             fullChannel.participants = {
               _: 'channelParticipants',
@@ -1335,7 +1375,8 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       getProfile: getProfile,
       getChatInviteLink: getChatInviteLink,
       getChatFull: getChatFull,
-      getChannelFull: getChannelFull
+      getChannelFull: getChannelFull,
+      getChannelParticipants: getChannelParticipants
     }
   })
 

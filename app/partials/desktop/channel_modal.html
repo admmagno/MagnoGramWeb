@@ -93,7 +93,8 @@
         </a>
 
       </div>
-
+      
+      
       <div class="md_modal_iconed_section_wrap md_modal_iconed_section_link" ng-if="chatFull.chat.pFlags.creator || !chatFull.chat.pFlags.left && !chatFull.chat.pFlags.kicked && !isMegagroup">
         <i class="md_modal_section_icon md_modal_section_icon_more"></i>
 
@@ -108,6 +109,34 @@
           </a>
         </div>
 
+      </div>
+      
+      <div class="md_modal_iconed_section_wrap md_modal_iconed_section_toggle">
+        
+        <i class="md_modal_section">Show</i>
+        
+        <div class="tg_radios_wrap">
+          <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'Recent'" ng-class="participantsFilter == 'Recent' ? 'tg_radio_on' : ''">
+            <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
+            <span class="tg_checkbox_label" >Recent Participants</span>
+          </a>
+          
+          <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'Admins'" ng-class="participantsFilter == 'Admins' ? 'tg_radio_on' : ''">
+            <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
+            <span class="tg_checkbox_label" >Admins</span>
+          </a>
+          
+          <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'Bots'" ng-class="participantsFilter == 'Bots' ? 'tg_radio_on' : ''">
+            <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
+            <span class="tg_checkbox_label" >Bots</span>
+          </a>
+          
+          <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'Kicked'" ng-class="participantsFilter == 'Kicked' ? 'tg_radio_on' : ''">
+            <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
+            <span class="tg_checkbox_label" >Kicked</span>
+          </a>
+          
+        </div>
       </div>
 
     </div>
@@ -127,11 +156,14 @@
             <a ng-if="participant.canKick" ng-click="kickFromChannel(participant.user_id)" class="md_modal_list_peer_action pull-right" my-i18n="group_modal_members_kick"></a>
 
             <a class="md_modal_list_peer_photo pull-left" my-peer-photolink="::participant.user_id" img-class="md_modal_list_peer_photo"></a>
+            <a ng-if="participant.kicked_by" class="md_modal_list_peer_photo pull-right" my-peer-photolink="::participant.kicked_by" img-class="md_modal_list_peer_photo"></a>
 
             <div class="md_modal_list_peer_name">
               <a class="md_modal_list_peer_name" my-peer-link="participant.user_id"></a>
             </div>
-            <div class="md_modal_list_peer_description" my-user-status="::participant.user_id" bot-chat-privacy="true"></div>
+            
+            <div ng-if="participant.kicked_by" class="md_modal_list_peer_description" my-date-to-string="::participant.date"></div>
+            <div ng-if="!participant.kicked_by" class="md_modal_list_peer_description" my-user-status="::participant.user_id" bot-chat-privacy="true"></div>
           </div>
 
         </div>
