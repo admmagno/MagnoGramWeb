@@ -3879,20 +3879,38 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, {})
     $scope.settings = {notifications: true}
     $scope.isMegagroup = AppChatsManager.isMegagroup($scope.chatID)
-    $scope.participantsFilter = 'channelParticipantsRecent'
+    $scope.participantsFilter = {filter:'channelParticipantsDefault',offset:0, trigger:0,limit:200}
 
-    $scope.$watch('participantsFilter', function (newValue, oldValue) {
+    $scope.$watch('participantsFilter.filter', function (newValue, oldValue) {
       if (newValue === oldValue) {
         return false
       }
-      
-      AppProfileManager.getChannelParticipants($scope.chatID, newValue).then(function (participants) {
+      $scope.participantsFilter.offset = 0;
+      //$scope.participantsFilter.trigger = 1;
+      AppProfileManager.getChannelParticipants($scope.chatID, newValue,0,$scope.participantsFilter.limit).then(function (participants) {
         $scope.chatFull.participants.participants = participants
         $scope.$broadcast('ui_height')
       })
     })
     
-    AppProfileManager.getChannelFull($scope.chatID, true, $scope.participantsFilter).then(function (chatFull) {
+    $scope.$watch('participantsFilter.trigger', function (newValue, oldValue) {
+      if($scope.participantsFilter.filter=='channelParticipantsDefault' && $scope.participantsFilter.offset==0 ) {
+        $scope.participantsFilter.offset = $scope.chatFull.participants.participants.length
+      }else{
+        if($scope.chatFull.participants.participants.length < $scope.participantsFilter.limit) {
+          return false;
+        }
+        $scope.participantsFilter.offset += $scope.participantsFilter.limit;
+      }
+
+      AppProfileManager.getChannelParticipants($scope.chatID, $scope.participantsFilter.filter, $scope.participantsFilter.offset ,$scope.participantsFilter.limit).then(function (participants) {
+        $scope.chatFull.participants.participants = participants
+        $scope.$broadcast('ui_height')
+      })
+    })
+    
+    
+    AppProfileManager.getChannelFull($scope.chatID, true).then(function (chatFull) {
       $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, chatFull)
       $scope.$broadcast('ui_height')
 
@@ -4048,7 +4066,7 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       var offset = 0
       var filter = 'channelParticipantsKicked'
       AppProfileManager.getChannelParticipants($scope.chatID, filter, offset, limit).then(function (participants) {
-        participants.shift()  // First participant is myParticipant, but we're obviously not banned
+        //participants.shift()  // First participant is myParticipant, but we're obviously not banned
         return ManageUsersService.show({
           text: {
             back: 'channel_modal_info',

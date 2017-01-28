@@ -116,31 +116,35 @@
       </a>
     </div>
     
-    <div class="md_modal_iconed_section_wrap md_modal_iconed_section_toggle">
+    <div class="mobile_modal_iconed_section_wrap mobile_modal_iconed_section_toggle" >
       
-      <i class="md_modal_section">Show Participants</i>
+      <i class="mobile_modal_section">Show Participants by Filter</i>
       
       <div class="tg_radios_wrap">
-        <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'channelParticipantsRecent'" ng-class="participantsFilter == 'channelParticipantsRecent' ? 'tg_radio_on' : ''">
+        <a class="mobile_modal_section_radio_wrap tg_radio" ng-click="participantsFilter.filter = 'channelParticipantsRecent'" ng-class="(participantsFilter.filter == 'channelParticipantsDefault' || participantsFilter.filter == 'channelParticipantsRecent') ? 'tg_radio_on' : ''">
           <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
           <span class="tg_checkbox_label" >Recent</span>
         </a>
         
-        <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'channelParticipantsAdmins'" ng-class="participantsFilter == 'channelParticipantsAdmins' ? 'tg_radio_on' : ''">
+        <a class="mobile_modal_section_radio_wrap tg_radio" ng-click="participantsFilter.filter = 'channelParticipantsAdmins'" ng-class="participantsFilter.filter == 'channelParticipantsAdmins' ? 'tg_radio_on' : ''">
           <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
           <span class="tg_checkbox_label" >Admins</span>
         </a>
         
-        <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'channelParticipantsBots'" ng-class="participantsFilter == 'channelParticipantsBots' ? 'tg_radio_on' : ''">
+        <a class="mobile_modal_section_radio_wrap tg_radio" ng-click="participantsFilter.filter = 'channelParticipantsBots'" ng-class="participantsFilter.filter == 'channelParticipantsBots' ? 'tg_radio_on' : ''">
           <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
           <span class="tg_checkbox_label" >Bots</span>
         </a>
         
-        <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter = 'channelParticipantsKicked'" ng-class="participantsFilter == 'channelParticipantsKicked' ? 'tg_radio_on' : ''">
+        <a class="mobile_modal_section_radio_wrap tg_radio" ng-click="participantsFilter.filter = 'channelParticipantsKicked'" ng-class="participantsFilter.filter == 'channelParticipantsKicked' ? 'tg_radio_on' : ''">
           <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
           <span class="tg_checkbox_label" >Kicked</span>
         </a>
         
+        <a class="mobile_modal_section_link" ng-if="( chatFull.participants.participants.length > 0 && (participantsFilter.filter=='channelParticipantsDefault' || chatFull.participants.participants.length >=participantsFilter.limit) ) " ng-click="participantsFilter.trigger = participantsFilter.trigger + 1">
+          <span>Load {{participantsFilter.limit}} More.         Seen:</span>
+          <span ng-bind="(participantsFilter.offset + chatFull.participants.participants.length)" class="pull-right"></span>
+        </a>
       </div>
     </div>
 
@@ -171,10 +175,15 @@
           </div>
 
         </div>
-
+        <div class="mobile_modal_iconed_section_wrap mobile_modal_iconed_section_toggle" ng-if="(participantsFilter.filter=='channelParticipantsDefault' || chatFull.participants.participants.length >=participantsFilter.limit)">
+            <a class="mobile_modal_section_link" ng-click="participantsFilter.trigger = participantsFilter.trigger + 1">
+              <span>Load {{participantsFilter.limit}} More.         Seen:</span>
+              <span ng-bind="(participantsFilter.offset + chatFull.participants.participants.length)" class="pull-right"></span>
+            </a>
+          </div>
       </div>
     </div>
-
+  
   </div>
 
 </div>

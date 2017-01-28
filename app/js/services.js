@@ -1171,24 +1171,29 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         if (typeof(arg1) === 'number') offset = arg1
         
         if (typeof(arg2) !== 'undefined') {
-          if (typeof(arg2) === 'string' && filter!=false) filter = arg2
+          if (typeof(arg2) === 'string' && filter!==false) filter = arg2
           if (typeof(arg2) === 'number') {
-            if (offset) limit = arg2;
+            if (offset!==false) limit = arg2;
             else offset = arg2
           }
           
           if (typeof(arg3) !== 'undefined') {
-            if (typeof(arg3) === 'string' && offset && limit && filter!=false) filter = arg3
-            if (typeof(arg3) === 'number' && offset && filter!=false) limit = arg3
+            if (typeof(arg3) === 'string' && offset!==false && limit!==false && filter!=false) filter = arg3
+            if (typeof(arg3) === 'number' && offset!==false && filter!=false) limit = arg3
           }
         }
       }
       
+      if([
+          'channelParticipantsRecent',
+          'channelParticipantsAdmins',
+          'channelParticipantsBots',
+          'channelParticipantsKicked'
+      ].indexOf(filter)==-1) filter=false;
       
       filter = filter || 'channelParticipantsRecent'
       offset = offset || 0
       limit = limit || (AppChatsManager.isMegagroup(id) ? 50 : 200)
-      
       return MtpApiManager.invokeApi('channels.getParticipants', {
         channel: AppChatsManager.getChannelInput(id),
         filter: {_: filter},
@@ -1198,7 +1203,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         AppUsersManager.saveApiUsers(result.users)
         var participants = result.participants
 
-        if(filter=='channelParticipantsRecent'){
+        if(filter=='channelParticipantsRecent' && typeof(arg1) == 'undefined'){
           var chat = AppChatsManager.getChat(id)
           if (!chat.pFlags.kicked && !chat.pFlags.left) {
             var myID = AppUsersManager.getSelf().id
