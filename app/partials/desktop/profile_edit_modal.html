@@ -15,6 +15,11 @@
         <label class="md-input-label" my-i18n="profile_edit_last_name"></label>
         <input class="md-input" type="text" ng-model="profile.last_name" />
       </div>
+      
+      <div class="md-input-group" ng-class="{'has-error': error.field == 'about'}" my-labeled-input>
+        <label class="md-input-label" my-i18n="profile_edit_about"></label>
+        <input class="md-input" type="textarea" ng-model="profile.about" />
+      </div>
 
     </form>
 

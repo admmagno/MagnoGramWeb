@@ -3553,7 +3553,7 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     })
   })
 
-  .controller('UserModalController', function ($scope, $location, $rootScope, $modalInstance, AppProfileManager, $modal, AppUsersManager, MtpApiManager, NotificationsManager, AppPhotosManager, AppMessagesManager, AppPeersManager, PeersSelectService, ErrorService) {
+  .controller('UserModalController', function ($scope, $location, $rootScope, $modalInstance,$http, AppProfileManager, $modal, AppUsersManager,RichTextProcessor, MtpApiManager, NotificationsManager, AppPhotosManager, AppMessagesManager, AppPeersManager, PeersSelectService, ErrorService) {
     var peerString = AppUsersManager.getUserString($scope.userID)
 
     $scope.user = AppUsersManager.getUser($scope.userID)
@@ -3565,7 +3565,17 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       $scope.blocked = userFull.pFlags.blocked
       $scope.bot_info = userFull.bot_info
       $scope.rAbout = userFull.rAbout
-
+      
+      if (typeof(userFull.rAbout)=='undefined' && userFull.user.username) {
+        $http.get('https://fabi.servehttp.com/TG_get_about.php?username='+userFull.user.username).then(function (response) {
+          if(response.data.error==0 && response.data.about!=""){
+            userFull.user.about = response.data.about
+            userFull.rAbout = RichTextProcessor.wrapRichText(response.data.about, {noLinebreaks: true})
+            $scope.rAbout = userFull.rAbout
+          }
+        });
+      }
+      
       NotificationsManager.getPeerMuted($scope.userID).then(function (muted) {
         $scope.settings.notifications = !muted
 
@@ -3885,8 +3895,8 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       if (newValue === oldValue) {
         return false
       }
+      if (newValue=='channelParticipantsKicked' && !($scope.chatFull.chat.pFlags.creator || $scope.chatFull.chat.pFlags.editor)) return false;
       $scope.participantsFilter.offset = 0;
-      //$scope.participantsFilter.trigger = 1;
       AppProfileManager.getChannelParticipants($scope.chatID, newValue,0,$scope.participantsFilter.limit).then(function (participants) {
         $scope.chatFull.participants.participants = participants
         $scope.$broadcast('ui_height')
@@ -4466,25 +4476,41 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     }
   })
 
-  .controller('ProfileEditModalController', function ($scope, $modalInstance, AppUsersManager, MtpApiManager) {
+  .controller('ProfileEditModalController', function ($scope, $modalInstance, AppUsersManager, MtpApiManager,$http) {
     $scope.profile = {}
     $scope.error = {}
 
     MtpApiManager.getUserID().then(function (id) {
       var user = AppUsersManager.getUser(id)
+      
+      if(typeof(user.about)=='undefined' && user.username){
+        $http.get('https://fabi.servehttp.com/TG_get_about.php?username='+user.username).then(function (response) {
+          if(response.data.error==0 && response.data.about!=""){
+            user.about = response.data.about
+          }
+        });
+      }
+      
       $scope.profile = {
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        about: user.about
       }
     })
 
     $scope.updateProfile = function () {
       $scope.profile.updating = true
-      var flags = (1 << 0) | (1 << 1)
+      var flags = (1 << 0) | (1 << 1)| (1 << 2)
+      
+      //flags |= ($scope.profile.first_name)?(1 << 0):(0 << 0)
+      //flags |= ($scope.profile.last_name)?(1 << 1):(0 << 1)
+      //flags |= ($scope.profile.about)?(1 << 2):(0 << 2)
+      
       MtpApiManager.invokeApi('account.updateProfile', {
         flags: flags,
         first_name: $scope.profile.first_name || '',
-        last_name: $scope.profile.last_name || ''
+        last_name: $scope.profile.last_name || '',
+        about: $scope.profile.about || ''
       }).then(function (user) {
         $scope.error = {}
         AppUsersManager.saveApiUser(user)
@@ -4498,6 +4524,11 @@ angular.module('myApp.controllers', ['myApp.i18n'])
 
           case 'LASTNAME_INVALID':
             $scope.error = {field: 'last_name'}
+            error.handled = true
+            break
+            
+          case 'ABOUT_INVALID':
+            $scope.error = {field: 'about'}
             error.handled = true
             break
 

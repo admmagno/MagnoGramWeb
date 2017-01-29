@@ -122,6 +122,7 @@
 	"profile_edit_modal_title": "Edit profile",
 	"profile_edit_first_name": "First name",
 	"profile_edit_last_name": "Last name",
+	"profile_edit_about": "About",
 	"profile_edit_submit": "Save",
 	"profile_edit_submit_active": "Saving...",
 
@@ -171,6 +172,7 @@
 
 	"user_name_deleted": "DELETED",
 	"user_first_name_deleted": "DELETED",
+	"user_about_deleted": "About Deleted",
 	"user_status_online": "online",
 	"user_status_last_seen": "last seen {0}",
 	"user_status_recently": "last seen recently",
@@ -396,6 +398,7 @@
 	"error_modal_network_description": "Please check your internet connection.",
 	"error_modal_firstname_invali_description": "The first name you entered is invalid.",
 	"error_modal_lastname_invalid_description": "The last name you entered is invalid.",
+	"error_modal_about_invalid_description": "The about descritpion you entered is invalid.",
 	"error_modal_phone_invalid_description": "The phone number you entered is invalid.",
 	"error_modal_users_too_much_description": "Too many group members.",
 	"error_modal_photo_dimensions_invalid_description": "The photo dimensions are invalid, please select another file.",

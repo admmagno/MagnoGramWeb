@@ -114,6 +114,10 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         apiUser.rFirstName = RichTextProcessor.wrapRichText(apiUser.last_name, {noLinks: true, noLinebreaks: true}) || apiUser.rPhone || _('user_first_name_deleted')
         apiUser.rFullName = RichTextProcessor.wrapRichText(apiUser.last_name, {noLinks: true, noLinebreaks: true}) || apiUser.rPhone || _('user_name_deleted')
       }
+      
+      if (apiUser.about) {
+        apiUser.rAbout = RichTextProcessor.wrapRichText(apiUser.about, {noLinebreaks: true})
+      }
 
       if (apiUser.username) {
         var searchUsername = SearchIndexManager.cleanUsername(apiUser.username)
