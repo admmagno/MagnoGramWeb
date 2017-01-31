@@ -1,3 +1,9 @@
+build:
+	./node_modules/gulp/bin/gulp.js build
+
+generate-mod:
+	./node_modules/gulp/bin/gulp.js generate-mod
+
 package:
 	rm -rf dist_package
 	./node_modules/gulp/bin/gulp.js clean
@@ -14,7 +20,8 @@ ghdist:
 
 publish:
 	./node_modules/gulp/bin/gulp.js publish
-	echo -n "Please open http://localhost:8000/dist/index.html and check if everything works fine." && read -e
+	@printf "Please open http://localhost:8000/dist/index.html and check if everything works fine."
+	@read -e
 	./node_modules/gulp/bin/gulp.js deploy
 
 bump:
@@ -31,3 +38,13 @@ txupdate:
 txupload:
 	tx pull -f
 	tx push -s
+
+update-angular:
+	@test $(version)
+	@printf "Trying to upgrade angularjs to: $(version)\n" 
+	mkdir tmp
+	curl http://code.angularjs.org/$(version)/angular-$(version).zip -o tmp/angular.zip
+	rm -fr app/vendor/angular
+	unzip tmp/angular.zip -d app/vendor
+	mv app/vendor/angular-$(version) app/vendor/angular
+	rm -fr app/vendor/angular/docs tmp
