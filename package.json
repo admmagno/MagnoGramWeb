@@ -1,7 +1,9 @@
 {
-  "name": "Telegram",
+  "name": "Telegram Web",
   "description": "Telegram Web App.\nMore info & source code here: https://github.com/zhukov/webogram",
+  "web_description": "Welcome to the Web application of Telegram messenger. See https://github.com/zhukov/webogram for more info.",
   "version": "0.5.5",
+  "short_name": "Telegram",
   "main": "app/index.html",
   "single-instance": true,
   "dom_storage_quota": 40,
@@ -27,6 +29,12 @@
     "url": "https://github.com/zhukov/webogram.git"
   },
   "author": "zhukov",
+  "authors_name": "Igor Zhukov",
+  "authors_github": "https://github.com/zhukov",
+  "authors_email": "igor.beatle@gmail.com",
+  "APP_ID": 2496,
+  "APP_API_KEY": "8da85b0d5bfe62527e5b244c209159c3",
+  "APP_DOMAINS": ["web.telegram.org", "zhukov.github.io"],
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/zhukov/webogram/issues"
@@ -40,7 +48,7 @@
     "nl-nl",
     "pt-br"
   ],
-  "homepage": "http://zhukov.github.io/webogram",
+  "homepage": "https://web.telegram.org",
   "devDependencies": {
     "del": "^1.2.0",
     "event-stream": "^3.1.0",

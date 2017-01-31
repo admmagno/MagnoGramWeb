@@ -9,6 +9,10 @@ var del = require('del')
 var runSequence = require('run-sequence')
 var swPrecache = require('sw-precache')
 var Server = require('karma').Server
+var date = new Date();
+RegExp.escape = function(str) {
+  return String(str).replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
 
 
 // The generated file is being created at src
@@ -147,10 +151,53 @@ gulp.task('bump-version-comments', function () {
     .pipe(gulp.dest('app'))
 })
 
+//Parse package.json and set all variables needed for making a forked mod
+//Or update the copyrighted year from the comments on js files.
+gulp.task('generate-mod', function () {
+  return es.concat(
+    gulp.src(['app/manifest.webapp', 'app/manifest.json', 'app/manifest.webapp.json'])
+      .pipe($.replace(/"name": ".*",/, '"name": "' + packageJson.name + '",'))
+      .pipe($.replace(/"description": ".*",/, '"description": "' + packageJson.description.replace(/\n/,"\\n") + '",'))
+      .pipe($.replace(/"short_name": ".*",/, '"short_name": "' + packageJson.short_name + '",'))
+      .pipe($.replace(/"developer": {\n    "name": ".*",\n    "url": ".*"\n  },/, 
+          '"developer": {\n    "name": "' + packageJson.authors_name + '",\n    "url": "' + packageJson.authors_github + '"\n  }'))
+      .pipe(gulp.dest('app')),
+      
+    gulp.src(['app/index.html'])
+      .pipe($.replace(/apple-mobile-web-app-title" content=".*">/, 'apple-mobile-web-app-title" content="' + packageJson.name + '">'))
+      .pipe($.replace(/og:title" content=".*">/, 'og:title" content="' + packageJson.name + '">'))
+      .pipe($.replace(/og:url" content=".*">/, 'og:url" content="' + packageJson.homepage + '/">'))
+      .pipe($.replace(/og:image" content=".*">/, 'og:image" content="' + packageJson.homepage + '/img/logo_share.png">'))
+      .pipe($.replace(/og:site_name" content=".*">/, 'og:site_name" content="' + packageJson.name + '">'))
+      .pipe($.replace(/og:description" content=".*">/, 'og:description" content="' + packageJson.web_description + '">'))
+      .pipe(gulp.dest('app')),
+      
+    gulp.src('app/**/*.js')
+      .pipe($.replace(RegExp(RegExp.escape(
+        ' * ' + packageJson.authors_github + '/webogram\n' +
+        ' * Copyright (C)') + " [0-9]+ " + RegExp.escape(packageJson.authors_name + ' <' + packageJson.authors_email + '>\n')),
+        ''
+      ))
+      .pipe($.replace(/\/\*!\n( \* Webogram [\s\S]*)\n( \* https:\/\/github.com\/zhukov\/webogram\/blob\/master\/LICENSE\n \*\/)/, 
+        '/*!\n'+
+        '$1\n'+
+        ' * ' + packageJson.authors_github + '/webogram\n' +
+        ' * Copyright (C) ' + date.getFullYear() + ' ' + packageJson.authors_name + ' <' + packageJson.authors_email + '>\n' +
+        '$2'
+      ))
+      .pipe($.replace(/Config\.App = {\n  id: [0-9]+,\n  hash: '.*',\n  version: '.*',\n  domains: \[.*\]\n}/, 
+        'Config.App = {\n  id: '+ packageJson.APP_ID +',\n  hash: \''+ packageJson.APP_API_KEY +'\',\n  version: \''+ packageJson.version +
+        '\',\n  domains: \[\''+ packageJson.APP_DOMAINS.join("', '") +'\'\]\n}'))
+      .pipe(gulp.dest('app'))
+  )
+})
+
 gulp.task('enable-production', function () {
   return es.concat(
     gulp.src('app/**/*.html')
+      .pipe($.replace(/PRODUCTION_ONLY_BEGIN-->/g, 'PRODUCTION_ONLY_BEGIN')) //Erase comment if it's already there.
       .pipe($.replace(/PRODUCTION_ONLY_BEGIN/g, 'PRODUCTION_ONLY_BEGIN-->'))
+      .pipe($.replace(/<!--PRODUCTION_ONLY_END/g, 'PRODUCTION_ONLY_BEGIN')) //Erase comment if it's already there.
       .pipe($.replace(/PRODUCTION_ONLY_END/, '<!--PRODUCTION_ONLY_END'))
       .pipe(gulp.dest('app')),
     gulp.src('app/**/*.js')
@@ -234,7 +281,9 @@ gulp.task('package-dev', function () {
       .pipe(gulp.dest('dist_package')),
 
     gulp.src('app/**/*.html')
+      .pipe($.replace(/PRODUCTION_ONLY_BEGIN-->/g, 'PRODUCTION_ONLY_BEGIN')) //Erase comment if it's already there.
       .pipe($.replace(/PRODUCTION_ONLY_BEGIN/g, 'PRODUCTION_ONLY_BEGIN-->'))
+      .pipe($.replace(/<!--PRODUCTION_ONLY_END/g, 'PRODUCTION_ONLY_BEGIN')) //Erase comment if it's already there.
       .pipe($.replace(/PRODUCTION_ONLY_END/, '<!--PRODUCTION_ONLY_END'))
       .pipe(gulp.dest('dist_package')),
 
