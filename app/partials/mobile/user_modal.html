@@ -56,6 +56,8 @@
 
       <div class="mobile_user_modal_info_wrap clearfix">
         <h4 class="mobile_user_modal_header" my-peer-link="user.id" verified="true"></h4>
+        <p class="mobile_user_modal_user_id" >ID: {{ user.id }}</p>
+        <p class="mobile_user_modal_acceess_hash" >Access Hash: {{ chatFull.chat.access_hash }}</p>
         <p class="mobile_user_modal_status" ng-if="user.status" my-user-status="::user.id"></p>
       </div>
 

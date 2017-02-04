@@ -21,6 +21,8 @@
       </div>
       <div class="peer_modal_profile">
         <div class="peer_modal_profile_name" my-peer-link="-chatFull.chat.id" verified="true"></div>
+        <div class="peer_modal_chat_id">ID: {{ chatFull.chat.id }}</div>
+        <div class="peer_modal_access_hash">Access Hash: {{ chatFull.chat.access_hash }}</div>
         <div class="peer_modal_profile_description" ng-if="chatFull.participants_count > 0">
           <ng-pluralize count="chatFull.participants_count"
                         when="group_modal_pluralize_participants">
@@ -136,7 +138,7 @@
 
       </div>
       
-      <div class="md_modal_iconed_section_wrap md_modal_iconed_section_toggle">
+      <div class="md_modal_iconed_section_wrap md_modal_iconed_section_toggle" ng-if="isMegagroup || chatFull.chat.pFlags.editor || chatFull.chat.pFlags.creator">
         
         <i class="md_modal_section">Show Participants by Filter</i>
         
@@ -156,7 +158,7 @@
             <span class="tg_checkbox_label" >Bots</span>
           </a>
           
-          <a class="md_modal_section_radio_wrap tg_radio" ng-show="(chatFull.chat.pFlags.creator || chatFull.chat.pFlags.editor)" ng-click="participantsFilter.filter = 'channelParticipantsKicked'" ng-class="participantsFilter.filter == 'channelParticipantsKicked' ? 'tg_radio_on' : ''">
+          <a class="md_modal_section_radio_wrap tg_radio" ng-show="chatFull.chat.pFlags.editor || chatFull.chat.pFlags.creator" ng-click="participantsFilter.filter = 'channelParticipantsKicked'" ng-class="participantsFilter.filter == 'channelParticipantsKicked' ? 'tg_radio_on' : ''">
             <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
             <span class="tg_checkbox_label" >Kicked</span>
           </a>
