@@ -36,6 +36,9 @@
       <div class="form-group" ng-class="{'has-error': error.field == 'last_name'}">
         <input class="form-control input-lg" type="text" placeholder="{{'profile_edit_last_name' | i18n}}" ng-model="profile.last_name"/>
       </div>
+      <div class="form-group" ng-class="{'has-error': error.field == 'about'}">
+        <input class="form-control input-lg" type="textarea" placeholder="{{'profile_edit_about' | i18n}}" ng-model="profile.about"/>
+      </div>
 
     </form>
 
