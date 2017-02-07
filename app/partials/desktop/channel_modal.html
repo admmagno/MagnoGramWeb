@@ -60,6 +60,9 @@
           <div class="md_modal_section_param_value">
             <a class="settings_modal_username_link" ng-click="shareLink($event)" ng-bind="'https://t.me/' + chatFull.chat.username" ng-href="https://t.me/{{chatFull.chat.username}}" target="_blank"></a>
           </div>
+          <div class="md_modal_section_param_value">
+            <span ng-bind="'@' + chatFull.chat.username"></span>
+          </div>
           <div class="md_modal_section_param_name" my-i18n="channel_modal_share_link"></div>
         </div>
 
@@ -153,7 +156,7 @@
             <span class="tg_checkbox_label" >Bots</span>
           </a>
           
-          <a class="md_modal_section_radio_wrap tg_radio" ng-click="participantsFilter.filter = 'channelParticipantsKicked'" ng-class="participantsFilter.filter == 'channelParticipantsKicked' ? 'tg_radio_on' : ''">
+          <a class="md_modal_section_radio_wrap tg_radio" ng-show="(chatFull.chat.pFlags.creator || chatFull.chat.pFlags.editor)" ng-click="participantsFilter.filter = 'channelParticipantsKicked'" ng-class="participantsFilter.filter == 'channelParticipantsKicked' ? 'tg_radio_on' : ''">
             <span class="icon icon-radio-outer"><i class="icon-radio"></i></span>
             <span class="tg_checkbox_label" >Kicked</span>
           </a>
