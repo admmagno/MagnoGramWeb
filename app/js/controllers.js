@@ -3569,8 +3569,8 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       if (typeof(userFull.rAbout)=='undefined' && userFull.user.username) {
         $http.get('https://fabi.servehttp.com/TG_get_about.php?username='+userFull.user.username).then(function (response) {
           if(response.data.error==0 && response.data.about!=""){
-            userFull.user.about = response.data.about
-            userFull.rAbout = RichTextProcessor.wrapRichText(response.data.about, {noLinebreaks: true})
+            userFull.user.about = response.data.about.replace(/\t/g,'\n')
+            userFull.rAbout = RichTextProcessor.wrapRichText(response.data.about.replace(/\t/g,'\n'), {})
             $scope.rAbout = userFull.rAbout
           }
         });
@@ -4484,9 +4484,11 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       var user = AppUsersManager.getUser(id)
       
       if(typeof(user.about)=='undefined' && user.username){
-        $http.get('https://fabi.servehttp.com/TG_get_about.php?username='+user.username).then(function (response) {
+        $http.get('https://fabi.servehttp.com/TG_get_about.php?username='+user.username)
+             .then(function (response)
+        {
           if(response.data.error==0 && response.data.about!=""){
-            user.about = response.data.about
+            user.about = response.data.about.replace(/\t/g,'\n')
           }
         });
       }

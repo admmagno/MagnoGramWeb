@@ -116,7 +116,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       }
       
       if (apiUser.about) {
-        apiUser.rAbout = RichTextProcessor.wrapRichText(apiUser.about, {noLinebreaks: true})
+        apiUser.rAbout = RichTextProcessor.wrapRichText(apiUser.about, {})
       }
 
       if (apiUser.username) {
@@ -789,7 +789,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       }
 
       if (chatFull.about) {
-        chatFull.rAbout = RichTextProcessor.wrapRichText(chatFull.about, {noLinebreaks: true})
+        chatFull.rAbout = RichTextProcessor.wrapRichText(chatFull.about, {})
       }
 
       chatFull.peerString = getChatString(id)
@@ -1071,7 +1071,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
         }
 
         if (userFull.about !== undefined) {
-          userFull.rAbout = RichTextProcessor.wrapRichText(userFull.about, {noLinebreaks: true})
+          userFull.rAbout = RichTextProcessor.wrapRichText(userFull.about, {})
         }
 
         NotificationsManager.savePeerSettings(id, userFull.notify_settings)
