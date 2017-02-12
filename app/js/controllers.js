@@ -3899,6 +3899,11 @@ angular.module('myApp.controllers', ['myApp.i18n'])
       $scope.participantsFilter.offset = 0;
       AppProfileManager.getChannelParticipants($scope.chatID, newValue,0,$scope.participantsFilter.limit).then(function (participants) {
         $scope.chatFull.participants.participants = participants
+        
+        
+        $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, $scope.chatFull)
+        
+        
         $scope.$broadcast('ui_height')
       })
     })
@@ -3915,6 +3920,9 @@ angular.module('myApp.controllers', ['myApp.i18n'])
 
       AppProfileManager.getChannelParticipants($scope.chatID, $scope.participantsFilter.filter, $scope.participantsFilter.offset ,$scope.participantsFilter.limit).then(function (participants) {
         $scope.chatFull.participants.participants = participants
+        
+        $scope.chatFull = AppChatsManager.wrapForFull($scope.chatID, $scope.chatFull)
+        
         $scope.$broadcast('ui_height')
       })
     })
@@ -4072,7 +4080,7 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     }
 
     $scope.manageChannelBlocked = function () {
-      var limit = 50
+      var limit = 200
       var offset = 0
       var filter = 'channelParticipantsKicked'
       AppProfileManager.getChannelParticipants($scope.chatID, filter, offset, limit).then(function (participants) {
