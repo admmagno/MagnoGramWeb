@@ -1,9 +1,9 @@
 {
-  "name": "Telegram Web",
-  "description": "Telegram Web App.\nMore info & source code here: https://github.com/zhukov/webogram",
-  "web_description": "Welcome to the Web application of Telegram messenger. See https://github.com/zhukov/webogram for more info.",
+  "name": "Unofficial Telegram Web",
+  "description": "Unofficial Telegram Web App.\nMore info & source code here: https://github.com/FabianPastor/webogram",
+  "web_description": "Welcome to the Unofficial Web application of Telegram messenger. See https://github.com/FabianPastor/webogram for more info.",
   "version": "0.5.5",
-  "short_name": "Telegram",
+  "short_name": "Unofficial Telegram",
   "main": "app/index.html",
   "single-instance": true,
   "dom_storage_quota": 40,
@@ -26,18 +26,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zhukov/webogram.git"
+    "url": "https://github.com/FabianPastor/webogram.git"
   },
-  "author": "zhukov",
-  "authors_name": "Igor Zhukov",
-  "authors_github": "https://github.com/zhukov",
-  "authors_email": "igor.beatle@gmail.com",
+  "author": "FabianPastor",
+  "authors_name": "Igor Zhukov & Viktor Oreshkin & Fabian Pastor",
+  "authors_github": "https://github.com/FabianPastor",
+  "authors_email": "",
   "APP_ID": 2496,
   "APP_API_KEY": "8da85b0d5bfe62527e5b244c209159c3",
-  "APP_DOMAINS": ["web.telegram.org", "zhukov.github.io"],
+  "APP_DOMAINS": ["fabianpastor.github.io"],
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/zhukov/webogram/issues"
+    "url": "https://github.com/FabianPastor/webogram/issues"
   },
   "locales": [
     "en-us",
@@ -48,7 +48,7 @@
     "nl-nl",
     "pt-br"
   ],
-  "homepage": "https://web.telegram.org",
+  "homepage": "https://telegram.org",
   "devDependencies": {
     "del": "^1.2.0",
     "event-stream": "^3.1.0",
