@@ -132,9 +132,9 @@
       <span class="mobile_modal_action" my-i18n="settings_modal_language"></span>
     </div>
 
-    <div class="mobile_modal_section" ng-if="profile.phone">
+    <div class="mobile_modal_section" ng-if="profile.phone" ng-mousedown="phone = (profile.phone | phoneNumber)">
       <h4 class="mobile_modal_section_header" my-i18n="user_modal_phone"></h4>
-      <div class="mobile_modal_section_value" ng-bind="profile.phone | phoneNumber"></div>
+      <div class="mobile_modal_section_value" ng-bind="phone"></div>
     </div>
 
     <div class="mobile_modal_section">

@@ -3558,7 +3558,8 @@ angular.module('myApp.controllers', ['myApp.i18n'])
 
     $scope.user = AppUsersManager.getUser($scope.userID)
     $scope.blocked = false
-
+    $scope.phone = 'Click To Show Phone'
+    
     $scope.settings = {notifications: true}
 
     AppProfileManager.getProfile($scope.userID, $scope.override).then(function (userFull) {
@@ -4175,7 +4176,8 @@ angular.module('myApp.controllers', ['myApp.i18n'])
     $scope.profile = {}
     $scope.photo = {}
     $scope.version = Config.App.version
-
+    $scope.phone = 'Click To Show Phone'
+    
     MtpApiManager.getUserID().then(function (id) {
       $scope.profile = AppUsersManager.getUser(id)
     })

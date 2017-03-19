@@ -38,8 +38,8 @@
       <div class="md_modal_iconed_section_wrap md_modal_iconed_section_number" ng-if="user.phone || user.username || rAbout">
         <i class="md_modal_section_icon md_modal_section_icon_phone"></i>
 
-        <div class="md_modal_section_param_wrap" ng-if="user.phone && !user.pFlags.self">
-          <div class="md_modal_section_param_value" ng-bind="user.phone | phoneNumber"></div>
+        <div class="md_modal_section_param_wrap" ng-mousedown="phone = (user.phone | phoneNumber)" ng-if="user.phone && !user.pFlags.self">
+          <div class="md_modal_section_param_value" ng-bind="phone"></div>
           <div class="md_modal_section_param_name" my-i18n="user_modal_phone"></div>
         </div>
 
