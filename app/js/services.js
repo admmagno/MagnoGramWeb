@@ -4188,10 +4188,12 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
-    function confirm (params, options) {
+    function confirm (params, options, data) {
       options = options || {}
+      data = data || {}
       var scope = $rootScope.$new()
       angular.extend(scope, params)
+      angular.extend(scope, { data: data })
 
       var modal = $modal.open({
         templateUrl: templateUrl('confirm_modal'),
@@ -4574,7 +4576,10 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
           if (url.search('https://telegram.me/') === 0) {
             target = '_self'
           }
-          window.open(url, target)
+          var popup = window.open(url, target)
+          try {
+            popup.opener = null;
+          } catch (e) {}
         })
         return true
       }
@@ -4699,8 +4704,11 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
           return true
         }
       }
-      var wnd = window.open(url, '_blank')
-      return wnd ? true : false
+      var popup = window.open(url, '_blank')
+      try {
+        popup.opener = null;
+      } catch (e) {}
+      return popup ? true : false
     }
 
     function shareUrl (url, text, shareLink) {

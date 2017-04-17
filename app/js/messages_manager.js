@@ -886,13 +886,23 @@ angular.module('myApp.services')
     }
 
     function canMessageBeEdited(message) {
-      var goodMedias = ['messageMediaPhoto', 'messageMediaDocument', 'messageMediaWebPage', 'messageMediaPending']
+      var goodMedias = [
+        'messageMediaPhoto',
+        'messageMediaDocument',
+        'messageMediaWebPage',
+        'messageMediaPending'
+      ]
       if (message._ != 'message' ||
           message.deleted ||
           message.fwd_from ||
           message.via_bot_id ||
           message.media && goodMedias.indexOf(message.media._) == -1 ||
           message.fromID && AppUsersManager.isBot(message.fromID)) {
+        return false
+      }
+      if (message.media &&
+          message.media._ == 'messageMediaDocument' &&
+          message.media.document.sticker) {
         return false
       }
 
@@ -947,7 +957,24 @@ angular.module('myApp.services')
       })
     }
 
-    function deleteMessages (messageIDs) {
+    function canRevokeMessage(messageID) {
+      if (messageID <= 0 ||
+          !messagesStorage[messageID]) {
+        return false
+      }
+
+      var message = messagesStorage[messageID]
+      if (message._ != 'message' ||
+          message.deleted ||
+          !message.pFlags.out ||
+          message.date < tsNow(true) - 2 * 86400) {
+        return false
+      }
+
+      return true
+    }
+
+    function deleteMessages (messageIDs, revoke) {
       var splitted = AppMessagesIDsManager.splitMessageIDsByChannels(messageIDs)
       var promises = []
       angular.forEach(splitted.msgIDs, function (msgIDs, channelID) {
@@ -985,7 +1012,12 @@ angular.module('myApp.services')
             })
           })
         } else {
+          var flags = 0
+          if (revoke) {
+            flags |= 1
+          }
           promise = MtpApiManager.invokeApi('messages.deleteMessages', {
+            flags: flags,
             id: msgIDs
           }).then(function (affectedMessages) {
             ApiUpdatesManager.processUpdateMessage({
@@ -1483,7 +1515,9 @@ angular.module('myApp.services')
                 random_id: randomIDS,
                 id: updates.id
               }, {
-                _: isChannel ? 'updateNewChannelMessage' : 'updateNewMessage',
+                _: isChannel
+                      ? 'updateNewChannelMessage'
+                      : 'updateNewMessage',
                 message: message,
                 pts: updates.pts,
                 pts_count: updates.pts_count
@@ -2814,9 +2848,21 @@ angular.module('myApp.services')
     function handleNewDialogs () {
       $timeout.cancel(newDialogsHandlePromise)
       newDialogsHandlePromise = false
-      angular.forEach(newDialogsToHandle, function (dialog) {
-        pushDialogToStorage(dialog)
+      var newMaxSeenID = 0
+      angular.forEach(newDialogsToHandle, function (dialog, peerID) {
+        if (dialog.reload) {
+          reloadConversation(peerID)
+          delete newDialogsToHandle[peerID]
+        } else {
+          pushDialogToStorage(dialog)
+          if (!AppPeersManager.isChannel(peerID)) {
+            newMaxSeenID = Math.max(newMaxSeenID, dialog.top_message || 0)
+          }
+        }
       })
+      if (newMaxSeenID !== false) {
+        incrementMaxSeenID(newMaxSeenID)
+      }
       $rootScope.$broadcast('dialogs_multiupdate', newDialogsToHandle)
       newDialogsToHandle = {}
     }
@@ -2866,6 +2912,15 @@ angular.module('myApp.services')
           var message = update.message
           var peerID = getMessagePeer(message)
           var historyStorage = historiesStorage[peerID]
+          var foundDialog = getDialogByPeerID(peerID)
+
+          if (!foundDialog.length) {
+            newDialogsToHandle[peerID] = {reload: true}
+            if (!newDialogsHandlePromise) {
+              newDialogsHandlePromise = $timeout(handleNewDialogs, 0)
+            }
+            break
+          }
 
           if (update._ == 'updateNewChannelMessage') {
             var chat = AppChatsManager.getChat(-peerID)
@@ -2928,23 +2983,11 @@ angular.module('myApp.services')
             }
           }
 
-          var foundDialog = getDialogByPeerID(peerID)
-          var dialog
           var inboxUnread = !message.pFlags.out && message.pFlags.unread
-
-          if (foundDialog.length) {
-            dialog = foundDialog[0]
-            dialog.top_message = message.mid
-            if (inboxUnread) {
-              dialog.unread_count++
-            }
-          } else {
-            SearchIndexManager.indexObject(peerID, AppPeersManager.getPeerSearchText(peerID), dialogsIndex)
-            dialog = {
-              peerID: peerID,
-              unread_count: inboxUnread ? 1 : 0,
-              top_message: message.mid
-            }
+          var dialog = foundDialog[0]
+          dialog.top_message = message.mid
+          if (inboxUnread) {
+            dialog.unread_count++
           }
           dialog.index = generateDialogIndex(message.date)
 
@@ -2979,10 +3022,6 @@ angular.module('myApp.services')
               notificationsHandlePromise = $timeout(handleNotifications, 1000)
             }
           }
-
-          if (!AppPeersManager.isChannel(peerID)) {
-            incrementMaxSeenID(message.id)
-          }
           break
 
         case 'updateEditMessage':
@@ -3007,10 +3046,10 @@ angular.module('myApp.services')
             messagesForHistory[mid] = wasForHistory
           }
 
+          var foundDialog = getDialogByPeerID(peerID)[0]
+          var isTopMessage = foundDialog && foundDialog.top_message == mid
           if (message.clear_history) {
-            var foundDialog = getDialogByPeerID(peerID)
-            if (foundDialog[0] &&
-              foundDialog[0].top_message == mid) {
+            if (isTopMessage) {
               $rootScope.$broadcast('dialog_flush', {peerID: peerID})
             } else {
               $rootScope.$broadcast('history_delete', {peerID: peerID, msgs: [mid]})
@@ -3021,6 +3060,11 @@ angular.module('myApp.services')
               id: message.id,
               mid: mid
             })
+            if (isTopMessage) {
+              var updatedDialogs = {}
+              updatedDialogs[peerID] = foundDialog
+              $rootScope.$broadcast('dialogs_multiupdate', updatedDialogs)
+            }
           }
           break
 
@@ -3288,8 +3332,9 @@ angular.module('myApp.services')
         var hasUpdated = false
         angular.forEach(dialogsResult.dialogs, function (dialog) {
           if (dialog.top_message) {
+            var wasBefore = getDialogByPeerID(dialog.peerID).length > 0
             saveConversation(dialog)
-            if (getDialogByPeerID(dialog.peerID).length) {
+            if (wasBefore) {
               $rootScope.$broadcast('dialog_top', dialog)
             } else {
               updatedDialogs[dialog.peerID] = dialog
@@ -3382,6 +3427,7 @@ angular.module('myApp.services')
       canMessageBeEdited: canMessageBeEdited,
       canEditMessage: canEditMessage,
       getMessageEditData: getMessageEditData,
+      canRevokeMessage: canRevokeMessage,
       clearDialogCache: clearDialogCache,
       wrapForDialog: wrapForDialog,
       wrapForHistory: wrapForHistory,

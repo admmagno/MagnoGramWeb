@@ -6,6 +6,7 @@
  */
 
 'use strict'
+/* global Config, templateUrl, onContentLoaded, cancelEvent, dT, setZeroTimeout calcImageInBox, getSelectedText,Scroller, setFieldSelection, scrollToNode, EmojiTooltip, EmojiPanel, MessageComposer, checkDragEvent, checkClick, Image, Clipboard, EmojiHelper, encodeEntities, FB, twttr, gapi, isInDOM, hasOnclick */
 
 /* Directives */
 
@@ -43,13 +44,13 @@ angular.module('myApp.directives', ['myApp.filters'])
 
   .directive('myMessage', function ($filter, _) {
     var dateFilter = $filter('myDate')
-    var dateSplitHtml = '<div class="im_message_date_split im_service_message_wrap"><div class="im_service_message"><span class="copyonly"><br/>---&nbsp;</span><span class="im_message_date_split_text"></span><span class="copyonly">&nbsp;---</span></div></div>',
-      unreadSplitHtml = '<div class="im_message_unread_split">' + _('unread_messages_split') + '</div>',
-      selectedClass = 'im_message_selected',
-      focusClass = 'im_message_focus',
-      unreadClass = 'im_message_unread',
-      errorClass = 'im_message_error',
-      pendingClass = 'im_message_pending'
+    var dateSplitHtml = '<div class="im_message_date_split im_service_message_wrap"><div class="im_service_message"><span class="copyonly"><br/>---&nbsp;</span><span class="im_message_date_split_text"></span><span class="copyonly">&nbsp;---</span></div></div>'
+    var unreadSplitHtml = '<div class="im_message_unread_split">' + _('unread_messages_split') + '</div>'
+    var selectedClass = 'im_message_selected'
+    var focusClass = 'im_message_focus'
+    var unreadClass = 'im_message_unread'
+    var errorClass = 'im_message_error'
+    var pendingClass = 'im_message_pending'
 
     return {
       templateUrl: templateUrl('message'),
@@ -65,42 +66,41 @@ angular.module('myApp.directives', ['myApp.filters'])
       var needDate = false
       var unreadAfter = false
       var applySelected = function () {
-          if (selected != ($scope.selectedMsgs[$scope.historyMessage.mid] || false)) {
-            selected = !selected
-            element.toggleClass(selectedClass, selected)
+        if (selected != ($scope.selectedMsgs[$scope.historyMessage.mid] || false)) {
+          selected = !selected
+          element.toggleClass(selectedClass, selected)
+        }
+      }
+      var needDateSplit, unreadAfterSplit
+      var applyGrouped = function () {
+        if (grouped != $scope.historyMessage.grouped) {
+          if (grouped) {
+            element.removeClass(grouped)
           }
-        },
-        needDateSplit,
-        applyGrouped = function () {
-          if (grouped != $scope.historyMessage.grouped) {
-            if (grouped) {
-              element.removeClass(grouped)
-            }
-            grouped = $scope.historyMessage.grouped
-            if (grouped) {
-              element.addClass(grouped)
-            }
+          grouped = $scope.historyMessage.grouped
+          if (grouped) {
+            element.addClass(grouped)
           }
-          if (needDate != ($scope.historyMessage.needDate || false)) {
-            needDate = !needDate
-            if (needDate) {
-              if (needDateSplit) {
-                needDateSplit.show()
-              } else {
-                needDateSplit = $(dateSplitHtml)
-                $('.im_message_date_split_text', needDateSplit).text(dateFilter($scope.historyMessage.date))
-                if (unreadAfterSplit) {
-                  needDateSplit.insertBefore(unreadAfterSplit)
-                } else {
-                  needDateSplit.prependTo(element)
-                }
-              }
+        }
+        if (needDate != ($scope.historyMessage.needDate || false)) {
+          needDate = !needDate
+          if (needDate) {
+            if (needDateSplit) {
+              needDateSplit.show()
             } else {
-              needDateSplit.hide()
+              needDateSplit = $(dateSplitHtml)
+              $('.im_message_date_split_text', needDateSplit).text(dateFilter($scope.historyMessage.date))
+              if (unreadAfterSplit) {
+                needDateSplit.insertBefore(unreadAfterSplit)
+              } else {
+                needDateSplit.prependTo(element)
+              }
             }
+          } else {
+            needDateSplit.hide()
           }
-        },
-        unreadAfterSplit
+        }
+      }
 
       applySelected()
       applyGrouped()
@@ -155,19 +155,19 @@ angular.module('myApp.directives', ['myApp.filters'])
       }
       if ($scope.historyMessage.error || $scope.historyMessage.pending) {
         var applyPending = function () {
-            if (pending != ($scope.historyMessage.pending || false)) {
-              pending = !pending
-              element.toggleClass(pendingClass, pending)
-            }
-            if (error != ($scope.historyMessage.error || false)) {
-              error = !error
-              element.toggleClass(errorClass, error)
-            }
-            if (!error && !pending) {
-              deregisterPending()
-            }
-          },
-          deregisterPending = $scope.$on('messages_pending', applyPending)
+          if (pending != ($scope.historyMessage.pending || false)) {
+            pending = !pending
+            element.toggleClass(pendingClass, pending)
+          }
+          if (error != ($scope.historyMessage.error || false)) {
+            error = !error
+            element.toggleClass(errorClass, error)
+          }
+          if (!error && !pending) {
+            deregisterPending()
+          }
+        }
+        var deregisterPending = $scope.$on('messages_pending', applyPending)
 
         applyPending()
       }
@@ -187,7 +187,7 @@ angular.module('myApp.directives', ['myApp.filters'])
     }
 
     function updateMessageText ($scope, element, message) {
-      if (message.media && message.media.handleMessage ||
+      if ((message.media && message.media.handleMessage) ||
           typeof message.message !== 'string' ||
         !message.message.length) {
         $('.im_message_text', element).hide()
@@ -390,6 +390,20 @@ angular.module('myApp.directives', ['myApp.filters'])
         $scope.videoOpen = function () {
           AppDocsManager.openVideo($scope.media.document.id, $scope.messageId)
         }
+        if ($scope.media.document.file_name) {
+          var fileNameParts = $scope.media.document.file_name.split('.')
+          if (fileNameParts.length > 1) {
+            $scope.media_file_ext = '.' + fileNameParts.pop()
+            $scope.media_file_name_without_ext = fileNameParts.join('.')
+            if (!$scope.media_file_name_without_ext) {
+              $scope.media_file_name_without_ext = $scope.media_file_ext
+              $scope.media_file_ext = ''
+            }
+          } else {
+            $scope.media_file_ext = ''
+            $scope.media_file_name_without_ext = fileNameParts[0]
+          }
+        }
       }
     }
   })
@@ -455,7 +469,7 @@ angular.module('myApp.directives', ['myApp.filters'])
           AppInlineBotsManager.gameButtonClick($scope.messageId)
         }
 
-        function updateMessageText(argument) {
+        function updateMessageText (argument) {
           var message = AppMessagesManager.getMessage($scope.messageId)
           if (message.message) {
             var html = AppMessagesManager.wrapMessageText($scope.messageId)
@@ -482,7 +496,25 @@ angular.module('myApp.directives', ['myApp.filters'])
       scope: {
         'media': '=myMessagePending'
       },
-      templateUrl: templateUrl('message_attach_pending')
+      templateUrl: templateUrl('message_attach_pending'),
+      link: link
+    }
+
+    function link ($scope, element, attrs) {
+      if ($scope.media.file_name) {
+        var fileNameParts = $scope.media.file_name.split('.')
+        if (fileNameParts.length > 1) {
+          $scope.media_file_ext = '.' + fileNameParts.pop()
+          $scope.media_file_name_without_ext = fileNameParts.join('.')
+          if (!$scope.media_file_name_without_ext) {
+            $scope.media_file_name_without_ext = $scope.media_file_ext
+            $scope.media_file_ext = ''
+          }
+        } else {
+          $scope.media_file_ext = ''
+          $scope.media_file_name_without_ext = fileNameParts[0]
+        }
+      }
     }
   })
 
@@ -671,7 +703,6 @@ angular.module('myApp.directives', ['myApp.filters'])
   })
 
   .directive('myMessageEdited', function (_, $timeout, AppMessagesManager) {
-
     var editedLabel = _('message_edited')
 
     return {
@@ -679,7 +710,7 @@ angular.module('myApp.directives', ['myApp.filters'])
       link: link
     }
 
-    function link($scope, element, attrs) {
+    function link ($scope, element, attrs) {
       var messageID = $scope.$parent.$eval(attrs.myMessageEdited)
       if (checkEdited($scope, element, messageID)) {
         $scope.$on('message_edit', function (e, data) {
@@ -691,7 +722,7 @@ angular.module('myApp.directives', ['myApp.filters'])
       }
     }
 
-    function checkEdited($scope, element, messageID) {
+    function checkEdited ($scope, element, messageID) {
       var message = AppMessagesManager.getMessage(messageID)
       if (!message.canBeEdited) {
         $timeout(function () {
@@ -769,8 +800,9 @@ angular.module('myApp.directives', ['myApp.filters'])
           return true
         }
 
+        var currentSelected, nextDialogWrap, dialogWraps
         if (e.keyCode == 36 && !e.shiftKey && !e.ctrlKey && e.altKey) { // Alt + Home
-          var currentSelected = $(scrollableWrap).find('.im_dialog_wrap a')
+          currentSelected = $(scrollableWrap).find('.im_dialog_wrap a')
           if (currentSelected.length) {
             $(currentSelected[0]).trigger('mousedown')
             scrollableWrap.scrollTop = 0
@@ -779,16 +811,15 @@ angular.module('myApp.directives', ['myApp.filters'])
           return cancelEvent(e)
         }
 
-        if (e.keyCode == 27 || e.keyCode == 9 && e.shiftKey && !e.ctrlKey && !e.metaKey) { // ESC or Shift + Tab
+        if (e.keyCode == 27 || (e.keyCode == 9 && e.shiftKey && !e.ctrlKey && !e.metaKey)) { // ESC or Shift + Tab
           if (!searchFocused) {
             setFieldSelection(searchField)
             if (searchField.value) {
               searchField.select()
             }
-          }
-          else if (searchField.value) {
+          } else if (searchField.value) {
             $(searchClear).trigger('click')
-          }else {
+          } else {
             $scope.$emit('esc_no_more')
             // Strange Chrome bug, when field doesn't get blur, but becomes inactive after location change
             setTimeout(function () {
@@ -802,7 +833,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         }
 
         if (searchFocused && e.keyCode == 13 && !Config.Navigator.mobile) { // Enter
-          var currentSelected = $(scrollableWrap).find('.im_dialog_selected')[0] || $(scrollableWrap).find('.im_dialog_wrap a')[0]
+          currentSelected = $(scrollableWrap).find('.im_dialog_selected')[0] || $(scrollableWrap).find('.im_dialog_wrap a')[0]
           if (currentSelected &&
               !$(currentSelected).hasClass('disabled')) {
             $(currentSelected).trigger('mousedown')
@@ -813,15 +844,13 @@ angular.module('myApp.directives', ['myApp.filters'])
         if (
           (!Config.Navigator.osX && // No Mac users
               e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey &&
-              e.keyCode >= 49 && e.keyCode <= 57 ) // Alt + Shift + # , switch to conversation # where # is in [1..9]
-          ||
+              e.keyCode >= 49 && e.keyCode <= 57) || // Alt + Shift + # , switch to conversation # where # is in [1..9]
           (Config.Navigator.osX && // Mac users only
           e.ctrlKey && e.shiftKey && !e.metaKey && !e.altKey &&
-          e.keyCode >= 49 && e.keyCode <= 57 ) ) { // Ctrl + Shift + # , switch to conversation # where # is in [1..9]
-
+          e.keyCode >= 49 && e.keyCode <= 57)) { // Ctrl + Shift + # , switch to conversation # where # is in [1..9]
           var dialogNumber = e.keyCode - 49
-          var dialogWraps = $(scrollableWrap).find('.im_dialog_wrap')
-          var nextDialogWrap = dialogWraps[dialogNumber]
+          dialogWraps = $(scrollableWrap).find('.im_dialog_wrap')
+          nextDialogWrap = dialogWraps[dialogNumber]
 
           if (nextDialogWrap) {
             $(nextDialogWrap).find('a').trigger('mousedown')
@@ -838,8 +867,7 @@ angular.module('myApp.directives', ['myApp.filters'])
           next = e.keyCode == 40
           prev = !next
           skip = !e.shiftKey && e.altKey
-        }
-        else if (ctrlTabSupported && e.keyCode == 9 && e.ctrlKey && !e.metaKey) { // Ctrl + Tab, Shift + Ctrl + Tab
+        } else if (ctrlTabSupported && e.keyCode == 9 && e.ctrlKey && !e.metaKey) { // Ctrl + Tab, Shift + Ctrl + Tab
           next = !e.shiftKey
           prev = !next
           skip = true
@@ -850,22 +878,21 @@ angular.module('myApp.directives', ['myApp.filters'])
             return true
           }
 
-          var currentSelected = !skip && $(scrollableWrap).find('.im_dialog_selected')[0] || $(scrollableWrap).find('.active a.im_dialog')[0]
-          var currentSelectedWrap = currentSelected && currentSelected.parentNode,
-            nextDialogWrap
+          currentSelected = (!skip && $(scrollableWrap).find('.im_dialog_selected')[0]) || $(scrollableWrap).find('.active a.im_dialog')[0]
+          var currentSelectedWrap = currentSelected && currentSelected.parentNode
 
           if (currentSelectedWrap) {
-            var nextDialogWrap = currentSelected[next ? 'nextSibling' : 'previousSibling']
+            nextDialogWrap = currentSelected[next ? 'nextSibling' : 'previousSibling']
 
             if (!nextDialogWrap || !nextDialogWrap.className || nextDialogWrap.className.indexOf('im_dialog_wrap') == -1) {
-              var dialogWraps = $(scrollableWrap).find('.im_dialog_wrap')
+              dialogWraps = $(scrollableWrap).find('.im_dialog_wrap')
               var pos = dialogWraps.index(currentSelected.parentNode)
               var nextPos = pos + (next ? 1 : -1)
 
               nextDialogWrap = dialogWraps[nextPos]
             }
           } else {
-            var dialogWraps = $(scrollableWrap).find('.im_dialog_wrap')
+            dialogWraps = $(scrollableWrap).find('.im_dialog_wrap')
             if (next) {
               nextDialogWrap = dialogWraps[0]
             } else {
@@ -1024,8 +1051,8 @@ angular.module('myApp.directives', ['myApp.filters'])
       function updateSizes () {
         $(element).css({
           height: $($window).height() -
-            (panelWrap && panelWrap.offsetHeight || 0) -
-            (searchWrap && searchWrap.offsetHeight || 0) -
+            ((panelWrap && panelWrap.offsetHeight) || 0) -
+            ((searchWrap && searchWrap.offsetHeight) || 0) -
             (Config.Mobile ? 64 : 200)
         })
         $(contactsWrap).nanoScroller()
@@ -1055,10 +1082,10 @@ angular.module('myApp.directives', ['myApp.filters'])
 
       function updateSizes () {
         $(element).css({
-          height: $($window).height()
-            - (panelWrap && panelWrap.offsetHeight || 0)
-            - (searchWrap && searchWrap.offsetHeight || 0)
-            - (Config.Mobile ? 46 + 18 : 200)
+          height: $($window).height() -
+            ((panelWrap && panelWrap.offsetHeight) || 0) -
+            ((searchWrap && searchWrap.offsetHeight) || 0) -
+            (Config.Mobile ? 46 + 18 : 200)
         })
         $(countriesWrap).nanoScroller()
       }
@@ -1085,8 +1112,8 @@ angular.module('myApp.directives', ['myApp.filters'])
 
       function updateSizes () {
         $(element).css({
-          height: Math.min(760, $($window).height()
-            - (Config.Mobile ? 46 + 18 : 200))
+          height: Math.min(760, $($window).height() -
+            (Config.Mobile ? 46 + 18 : 200))
         })
         $(sessionsWrap).nanoScroller()
       }
@@ -1110,8 +1137,8 @@ angular.module('myApp.directives', ['myApp.filters'])
 
       function updateSizes () {
         $(element).css({
-          height: Math.min(600, $($window).height()
-            - (Config.Mobile ? 46 + 18 : 200))
+          height: Math.min(600, $($window).height() -
+            (Config.Mobile ? 46 + 18 : 200))
         })
         $(stickersWrap).nanoScroller()
       }
@@ -1155,8 +1182,8 @@ angular.module('myApp.directives', ['myApp.filters'])
       }
 
       var transform = false
-      var trs = ['transform', 'webkitTransform', 'MozTransform', 'msTransform', 'OTransform'],
-        i
+      var trs = ['transform', 'webkitTransform', 'MozTransform', 'msTransform', 'OTransform']
+      var i
       for (i = 0; i < trs.length; i++) {
         if (trs[i] in historyMessagesEl.style) {
           transform = trs[i]
@@ -1164,7 +1191,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         }
       }
 
-      var animated = transform && false ? true : false
+      var animated = transform && false ? true : false // ?
       var curAnimation = false
 
       $scope.$on('ui_history_append_new', function (e, options) {
@@ -1183,8 +1210,8 @@ angular.module('myApp.directives', ['myApp.filters'])
         }
         var curAnimated = animated &&
             !$rootScope.idle.isIDLE &&
-            historyMessagesEl.clientHeight > 0,
-          wasH
+            historyMessagesEl.clientHeight > 0
+        var wasH
 
         if (curAnimated) {
           wasH = scrollableWrap.scrollHeight
@@ -1344,29 +1371,29 @@ angular.module('myApp.directives', ['myApp.filters'])
         $(scrollable).css({bottom: -(sh - st - ch), paddingRight: pr})
 
         var upd = function () {
-            $(scrollableWrap).removeClass('im_history_to_bottom')
-            $(scrollable).css({bottom: '', paddingRight: ''})
-            if (scrollTopInitial >= 0) {
-              changeScroll()
-            } else {
-              // console.log('change scroll prepend')
-              scrollableWrap.scrollTop = st + scrollableWrap.scrollHeight - sh
+          $(scrollableWrap).removeClass('im_history_to_bottom')
+          $(scrollable).css({bottom: '', paddingRight: ''})
+          if (scrollTopInitial >= 0) {
+            changeScroll()
+          } else {
+            // console.log('change scroll prepend')
+            scrollableWrap.scrollTop = st + scrollableWrap.scrollHeight - sh
+          }
+
+          updateBottomizer()
+          moreNotified = false
+
+          $timeout(function () {
+            if (scrollableWrap.scrollHeight != sh) {
+              $(scrollableWrap).trigger('scroll')
             }
+          })
 
-            updateBottomizer()
-            moreNotified = false
-
-            $timeout(function () {
-              if (scrollableWrap.scrollHeight != sh) {
-                $(scrollableWrap).trigger('scroll')
-              }
-            })
-
-            clearTimeout(timer)
-            unreg()
-          },
-          timer = setTimeout(upd, 0),
-          unreg = $scope.$on('$viewContentLoaded', upd)
+          clearTimeout(timer)
+          unreg()
+        }
+        var timer = setTimeout(upd, 0)
+        var unreg = $scope.$on('$viewContentLoaded', upd)
       })
 
       $scope.$on('ui_history_append', function () {
@@ -1439,8 +1466,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         if (!moreNotified && st <= 300) {
           moreNotified = true
           $scope.$emit('history_need_more')
-        }
-        else if (!lessNotified && st >= scrollableWrap.scrollHeight - scrollableWrap.clientHeight - 300) {
+        } else if (!lessNotified && st >= scrollableWrap.scrollHeight - scrollableWrap.clientHeight - 300) {
           lessNotified = true
           $scope.$emit('history_need_less')
         }
@@ -1486,10 +1512,10 @@ angular.module('myApp.directives', ['myApp.filters'])
 
       function updateBottomizer () {
         $(historyMessagesEl).css({marginTop: 0})
-        var marginTop = scrollableWrap.offsetHeight
-        - historyMessagesEl.offsetHeight
-        - emptyWrapEl.offsetHeight
-        - (Config.Mobile ? 0 : 39)
+        var marginTop = scrollableWrap.offsetHeight -
+        historyMessagesEl.offsetHeight -
+        emptyWrapEl.offsetHeight -
+        (Config.Mobile ? 0 : 39)
 
         if (historyMessagesEl.offsetHeight > 0 && marginTop > 0) {
           $(historyMessagesEl).css({marginTop: marginTop})
@@ -1671,7 +1697,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         })
       }
 
-      function onDirectionKey(e) {
+      function onDirectionKey (e) {
         if (e.keyCode == 38) {
           $scope.$emit('last_message_edit')
           return cancelEvent(e)
@@ -1727,7 +1753,7 @@ angular.module('myApp.directives', ['myApp.filters'])
             composer.setValue($scope.draftMessage.text || '')
             updateHeight()
           }
-          if (shouldFocusOnInteraction || options && options.focus) {
+          if (shouldFocusOnInteraction || (options && options.focus)) {
             composer.focus()
           }
         }
@@ -1786,10 +1812,9 @@ angular.module('myApp.directives', ['myApp.filters'])
 
       function onPasteEvent (e) {
         var cData = (e.originalEvent || e).clipboardData
-        var items = cData && cData.items || []
-        var files = [],
-          file
-        var i
+        var items = (cData && cData.items) || []
+        var files = []
+        var i, file
 
         for (i = 0; i < items.length; i++) {
           if (items[i].kind == 'file') {
@@ -1902,7 +1927,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         // console.log('new loc', newLocation, arguments)
         var counterSaved = ++counter
         if (!newLocation || newLocation.empty) {
-          element.attr('src', $scope.thumb && $scope.thumb.placeholder || 'img/blank.gif')
+          element.attr('src', ($scope.thumb && $scope.thumb.placeholder) || 'img/blank.gif')
           cleanup()
           return
         }
@@ -2007,9 +2032,9 @@ angular.module('myApp.directives', ['myApp.filters'])
 
           if (e && e.type == 'FS_BROWSER_UNSUPPORTED') {
             $scope.error = {html: _('error_browser_no_local_file_system_image_md', {
-                'moz-link': '<a href="{0}" target="_blank">{1}</a>',
-                'chrome-link': '<a href="{0}" target="_blank">{1}</a>',
-                'telegram-link': '<a href="{0}" target="_blank">{1}</a>'
+              'moz-link': '<a href="{0}" target="_blank">{1}</a>',
+              'chrome-link': '<a href="{0}" target="_blank">{1}</a>',
+              'telegram-link': '<a href="{0}" target="_blank">{1}</a>'
             })}
           } else {
             $scope.error = {text: _('error_image_download_failed'), error: e}
@@ -2072,9 +2097,9 @@ angular.module('myApp.directives', ['myApp.filters'])
 
         if (e && e.type == 'FS_BROWSER_UNSUPPORTED') {
           $scope.error = {html: _('error_browser_no_local_file_system_video_md', {
-              'moz-link': '<a href="{0}" target="_blank">{1}</a>',
-              'chrome-link': '<a href="{0}" target="_blank">{1}</a>',
-              'telegram-link': '<a href="{0}" target="_blank">{1}</a>'
+            'moz-link': '<a href="{0}" target="_blank">{1}</a>',
+            'chrome-link': '<a href="{0}" target="_blank">{1}</a>',
+            'telegram-link': '<a href="{0}" target="_blank">{1}</a>'
           })}
         } else {
           $scope.error = {text: _('error_video_download_failed'), error: e}
@@ -2179,7 +2204,7 @@ angular.module('myApp.directives', ['myApp.filters'])
 
       imgElement.attr('alt', '[' + ($scope.document.stickerEmojiRaw || '') + ' ' + _('conversation_media_sticker') + ']')
 
-      var dim = attrs.dim && $scope.$parent.$eval(attrs.dim) || $scope.document.thumb
+      var dim = (attrs.dim && $scope.$parent.$eval(attrs.dim)) || $scope.document.thumb
 
       if (attrs.open && $scope.document.stickerSetInput) {
         element
@@ -2375,7 +2400,7 @@ angular.module('myApp.directives', ['myApp.filters'])
       element.attr('src', 'img/blank.gif')
 
       var src = 'https://maps.googleapis.com/maps/api/staticmap?sensor=false&center=' + $scope.point['lat'] + ',' + $scope.point['long'] + '&zoom=' + zoom + '&size=' + width + 'x' + height + '&scale=2&markers=color:red|size:big|' + $scope.point['lat'] + ',' + $scope.point['long']
-      var useApiKey = false
+      var useApiKey = true
 
       if (useApiKey) {
         src += '&key=' + apiKey
@@ -2404,7 +2429,8 @@ angular.module('myApp.directives', ['myApp.filters'])
       if (animationSupported === undefined) {
         animationSupported = el.style.animationName !== undefined
         if (animationSupported === false) {
-          var domPrefixes = 'Webkit Moz O ms Khtml'.split(' '), i
+          var domPrefixes = 'Webkit Moz O ms Khtml'.split(' ')
+          var i
           for (i = 0; i < domPrefixes.length; i++) {
             if (el.style[domPrefixes[i] + 'AnimationName'] !== undefined) {
               animationSupported = true
@@ -2570,7 +2596,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         var height = element[0].parentNode.offsetHeight
         var modal = element[0].parentNode.parentNode.parentNode
         var bottomPanel = $('.media_modal_bottom_panel_wrap', modal)[0]
-        var contHeight = modal.offsetHeight - (bottomPanel && bottomPanel.offsetHeight || 0)
+        var contHeight = modal.offsetHeight - ((bottomPanel && bottomPanel.offsetHeight) || 0)
 
         if (height < contHeight) {
           $(element[0].parentNode).css('marginTop', (contHeight - height) / 2)
@@ -2611,7 +2637,7 @@ angular.module('myApp.directives', ['myApp.filters'])
       var updateMargin = function () {
         var height = element[0].offsetHeight
         var fullHeight = height - (height && usePadding ? 2 * prevMargin : 0)
-        var ratio = attrs.myVerticalPosition && parseFloat(attrs.myVerticalPosition) || 0.5
+        var ratio = (attrs.myVerticalPosition && parseFloat(attrs.myVerticalPosition)) || 0.5
         var contHeight = attrs.contHeight ? $scope.$eval(attrs.contHeight) : $($window).height()
         var margin = fullHeight < contHeight ? parseInt((contHeight - fullHeight) * ratio) : ''
         var styles = usePadding
@@ -2668,7 +2694,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         var user = AppUsersManager.getUser(userID)
         element
           .html(statusFilter(user, attrs.botChatPrivacy))
-          .toggleClass('status_online', user.status && user.status._ == 'userStatusOnline' || false)
+          .toggleClass('status_online', (user.status && user.status._ == 'userStatusOnline') || false)
       // console.log(dT(), 'update status', element[0], user.status && user.status, tsNow(true), element.html())
       }
 
@@ -2895,7 +2921,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         }
       }
 
-      if (element[0].tagName == 'A' && !hasOnlick(element[0])) {
+      if (element[0].tagName == 'A' && !hasOnclick(element[0])) {
         element.on('click', function () {
           if (peerID > 0) {
             AppUsersManager.openUser(peerID, override)
@@ -3013,7 +3039,9 @@ angular.module('myApp.directives', ['myApp.filters'])
       if (attrs.watch) {
         $scope.$on('user_update', function (e, updUserID) {
           if (peerID == updUserID) {
-            if (!angular.equals(peer.photo && peer.photo.photo_small, peerPhoto)) {
+            peer = AppPeersManager.getPeer(peerID)
+            if (!angular.equals(peer.photo && peer.photo.photo_small, peerPhoto) ||
+                !peerPhoto) {
               updatePeerPhoto()
             }
           }
@@ -3086,10 +3114,8 @@ angular.module('myApp.directives', ['myApp.filters'])
         if ($scope.audio.url) {
           checkPlayer($scope.mediaPlayer.player)
           $scope.mediaPlayer.player.playPause()
-        }
-        else if ($scope.audio.progress && $scope.audio.progress.enabled) {
-          return
-        }else {
+        } else if ($scope.audio.progress && $scope.audio.progress.enabled) {
+        } else {
           AppDocsManager.downloadDoc($scope.audio.id).then(function () {
             onContentLoaded(function () {
               var errorListenerEl = $('audio', element)[0] || element[0]
@@ -3186,7 +3212,7 @@ angular.module('myApp.directives', ['myApp.filters'])
         e = e.originalEvent || e
 
         var offsetX = (e.touches && e.touches[0] ? e.touches[0].pageX : e.pageX) - lastMinPageX
-        offsetX = Math.min(width, Math.max(0 , offsetX))
+        offsetX = Math.min(width, Math.max(0, offsetX))
         // console.log(e.type, lastMinPageX, e.pageX, offsetX)
         lastUpdValue = minValue + offsetX / width * (maxValue - minValue)
         if (sliderCallback) {
@@ -3210,7 +3236,7 @@ angular.module('myApp.directives', ['myApp.filters'])
           var percent = Math.max(0, (newVal - minValue) / (maxValue - minValue))
           if (width) {
             var offsetX = Math.ceil(width * percent)
-            offsetX = Math.min(width, Math.max(0 , offsetX))
+            offsetX = Math.min(width, Math.max(0, offsetX))
             thumb.css('left', Math.max(0, offsetX - thumbWidth))
             fill.css('width', offsetX)
           } else {
@@ -3239,15 +3265,13 @@ angular.module('myApp.directives', ['myApp.filters'])
         if (e.touches && e.touches[0]) {
           lastMinPageX = element.position().left
           offsetX = e.touches[0].pageX - lastMinPageX
-        }
-        else if (e.offsetX !== undefined) {
+        } else if (e.offsetX !== undefined) {
           offsetX = e.offsetX
           lastMinPageX = e.pageX - offsetX
-        }
-        else if (e.layerX !== undefined) {
+        } else if (e.layerX !== undefined) {
           offsetX = e.layerX
           lastMinPageX = e.pageX - offsetX
-        }else {
+        } else {
           return cancelEvent(e)
         }
 
@@ -3509,8 +3533,7 @@ angular.module('myApp.directives', ['myApp.filters'])
           var spritesheet, pos
           var categoryIndex
           var count = Math.min(5, codes.length)
-          var i, x
-          var y
+          var i, x, y
 
           for (i = 0; i < count; i++) {
             emoticonCode = codes[i]
@@ -3558,8 +3581,9 @@ angular.module('myApp.directives', ['myApp.filters'])
             if ((result.type == 'gif' || result.type == 'sticker') && result.document) {
               AppDocsManager.downloadDoc(result.document.id)
             }
+            var photoSize
             if (result.type == 'photo' && result.photo) {
-              var photoSize = AppPhotosManager.choosePhotoSize(result.photo, result.thumbW, result.thumbH)
+              photoSize = AppPhotosManager.choosePhotoSize(result.photo, result.thumbW, result.thumbH)
               var dim = calcImageInBox(photoSize.w, photoSize.h, result.thumbW, result.thumbH)
               result.thumb = {
                 width: dim.w,
@@ -3569,7 +3593,7 @@ angular.module('myApp.directives', ['myApp.filters'])
               }
             }
             if (result.type == 'game' && result.photo) {
-              var photoSize = AppPhotosManager.choosePhotoSize(result.photo, 100, 100)
+              photoSize = AppPhotosManager.choosePhotoSize(result.photo, 100, 100)
               // var dim = calcImageInBox(photoSize.w, photoSize.h, result.thumbW, result.thumbH)
               result.thumb = {
                 // width: dim.w,
@@ -3603,7 +3627,7 @@ angular.module('myApp.directives', ['myApp.filters'])
           if (!dataParsed || !dataParsed.eventType) {
             return
           }
-          $scope.$emit('game_frame_event', dataParsed);
+          $scope.$emit('game_frame_event', dataParsed)
         }
 
         $($window).on('message', handler)
@@ -3620,7 +3644,6 @@ angular.module('myApp.directives', ['myApp.filters'])
   })
 
   .directive('myEmojiImage', function (RichTextProcessor) {
-
     function link ($scope, element, attrs) {
       var emoji = attrs.myEmojiImage
       var html = RichTextProcessor.wrapRichText(emoji, {noLinks: true, noLinebreaks: true})
@@ -3648,16 +3671,17 @@ angular.module('myApp.directives', ['myApp.filters'])
       var html = ''
       var callback = false
       var needTwitter = false
+      var videoID
       switch (embedData[0]) {
         case 'youtube':
-          var videoID = embedData[1]
+          videoID = embedData[1]
           html = '<div class="im_message_media_embed im_message_video_embed"><' + embedTag + ' type="text/html" frameborder="0" ' +
             'src="https://www.youtube.com/embed/' + videoID +
             '?autoplay=0&amp;controls=2" webkitallowfullscreen mozallowfullscreen allowfullscreen></' + embedTag + '></div>'
           break
 
         case 'vimeo':
-          var videoID = embedData[1]
+          videoID = embedData[1]
           html = '<div class="im_message_media_embed im_message_video_embed"><' + embedTag + ' type="text/html" frameborder="0" ' +
             'src="https://player.vimeo.com/video/' + videoID +
             '?title=0&amp;byline=0&amp;portrait=0" webkitallowfullscreen mozallowfullscreen allowfullscreen></' + embedTag + '></div>'
@@ -3707,8 +3731,7 @@ angular.module('myApp.directives', ['myApp.filters'])
                   })
                 })
                 .attr('src', 'https://platform.twitter.com/widgets.js')
-            }
-            else if (window.twttr) {
+            } else if (window.twttr) {
               twttr.widgets.load(element[0])
             }
             twitterPendingWidgets.push($scope)
@@ -3732,9 +3755,7 @@ angular.module('myApp.directives', ['myApp.filters'])
                   })
                 })
                 .attr('src', 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&appId=254098051407226&version=v2.0')
-            }
-
-            else if (window.FB) {
+            } else if (window.FB) {
               FB.XFBML.parse(element[0])
             }
             facebookPendingWidgets.push($scope)
@@ -3755,8 +3776,7 @@ angular.module('myApp.directives', ['myApp.filters'])
                   gapi.post.go()
                 })
                 .attr('src', 'https://apis.google.com/js/plusone.js')
-            }
-            else if (window.gapi) {
+            } else if (window.gapi) {
               gapi.post.go(element[0])
             }
             element.one('load', function () {
