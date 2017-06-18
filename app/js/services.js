@@ -1,5 +1,5 @@
 /*!
- * Webogram v0.5.5 - messaging web application for MTProto
+ * Webogram v0.5.6 - messaging web application for MTProto
  * https://github.com/zhukov/webogram
  * Copyright (C) 2014 Igor Zhukov <igor.beatle@gmail.com>
  * https://github.com/zhukov/webogram/blob/master/LICENSE
@@ -652,8 +652,8 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       switch (action) {
         case 'send':
           if (chat._ == 'channel' &&
-            !chat.pFlags.megagroup &&
-            !chat.pFlags.editor) {
+              !chat.pFlags.megagroup &&
+              !chat.pFlags.editor) {
             return false
           }
           break
@@ -664,7 +664,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
           if (chat._ == 'channel') {
             if (chat.pFlags.megagroup) {
               if (!chat.pFlags.editor &&
-                !(action == 'invite' && chat.pFlags.democracy)) {
+                  !(action == 'invite' && chat.pFlags.democracy)) {
                 return false
               }
             } else {
@@ -672,7 +672,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
             }
           } else {
             if (chat.pFlags.admins_enabled &&
-              !chat.pFlags.admin) {
+                !chat.pFlags.admin) {
               return false
             }
           }
@@ -2245,6 +2245,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     var started = false
     var applied = false
     var currentStickerSets = []
+    var emojiIndex = {}
 
     $rootScope.$on('apiUpdate', function (e, update) {
       if (update._ != 'updateStickerSets' &&
@@ -2256,7 +2257,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
 
       return Storage.get('all_stickers').then(function (stickers) {
         if (!stickers ||
-          stickers.layer != Config.Schema.API.layer) {
+            stickers.layer != Config.Schema.API.layer) {
           $rootScope.$broadcast('stickers_changed')
         }
         switch (update._) {
@@ -2279,6 +2280,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
             set.pFlags.installed = true
             stickers.sets.unshift(set)
             stickers.fullSets[set.id] = fullSet
+            indexStickerSetEmoticons(fullSet)
             break
 
           case 'updateDelStickerSet':
@@ -2319,6 +2321,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       openStickerset: openStickerset,
       installStickerset: installStickerset,
       pushPopularSticker: pushPopularSticker,
+      searchStickers: searchStickers,
       getStickerset: getStickerset
     }
 
@@ -2332,10 +2335,12 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
     function getStickers (force) {
       return Storage.get('all_stickers').then(function (stickers) {
         var layer = Config.Schema.API.layer
-        if (stickers.layer != layer) {
+        if (stickers.layer != layer ||
+            stickers.emojiIndex === undefined) {
           stickers = false
         }
         if (stickers && stickers.date > tsNow(true) && !force) {
+          emojiIndex = stickers.emojiIndex
           return processRawStickers(stickers)
         }
         return MtpApiManager.invokeApi('messages.getAllStickers', {
@@ -2351,6 +2356,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
 
           if (notModified) {
             Storage.set({all_stickers: newStickers})
+            emojiIndex = newStickers.emojiIndex
             return processRawStickers(newStickers)
           }
 
@@ -2412,14 +2418,74 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       })
     }
 
+    function indexStickerSetEmoticons(fullSet) {
+      angular.forEach(fullSet.packs, function (pack) {
+        var emoji = pack.emoticon
+        var emojiCode = false
+        while (emoji.length) {
+          emojiCode = EmojiHelper.emojiMap[emoji]
+          if (emojiCode !== undefined) {
+            break
+          }
+          emoji = emoji.substr(0, -1)
+        }
+        // console.warn('index', fullSet, pack, emojiCode)
+        if (emojiCode === undefined) {
+          return
+        }
+        var stickersList = emojiIndex[emojiCode]
+        if (stickersList === undefined) {
+          emojiIndex[emojiCode] = stickersList = []
+        }
+        angular.forEach(pack.documents, function (docID) {
+          if (stickersList.indexOf(docID) === -1) {
+            stickersList.push(docID)
+          }
+        })
+      })
+    }
+
+    function searchStickers(emojiCode) {
+      return getPopularStickers().then(function () {
+        // console.warn('search', emojiCode, emojiIndex, emojiIndex[emojiCode])
+        var stickersList = emojiIndex[emojiCode]
+        var result = []
+        if (stickersList === undefined) {
+          return result
+        }
+        var setIDs = []
+        angular.forEach(currentStickerSets, function (set) {
+          setIDs.push(set.id)
+        })
+        angular.forEach(stickersList, function (docID) {
+          var doc = AppDocsManager.getDoc(docID)
+          if (!doc || !doc.stickerSetInput) {
+            return
+          }
+          var setID = doc.stickerSetInput.id
+          if (setIDs.indexOf(setID) == -1) {
+            return
+          }
+          result.push(doc)
+        })
+        result.sort(function (doc1, doc2) {
+          return setIDs.indexOf(doc1.stickerSetInput.id) - setIDs.indexOf(doc2.stickerSetInput.id)
+        })
+        return result
+      })
+
+    }
+
     function getStickerSets (allStickers, prevCachedSets) {
       var promises = []
       var cachedSets = prevCachedSets || allStickers.fullSets || {}
       allStickers.fullSets = {}
+      emojiIndex = allStickers.emojiIndex = {}
       angular.forEach(allStickers.sets, function (shortSet) {
         var fullSet = cachedSets[shortSet.id]
         if (fullSet && fullSet.set.hash == shortSet.hash) {
           allStickers.fullSets[shortSet.id] = fullSet
+          indexStickerSetEmoticons(fullSet)
         } else {
           var promise = MtpApiManager.invokeApi('messages.getStickerSet', {
             stickerset: {
@@ -2429,6 +2495,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
             }
           }).then(function (fullSet) {
             allStickers.fullSets[shortSet.id] = fullSet
+            indexStickerSetEmoticons(fullSet)
           })
           promises.push(promise)
         }
@@ -2689,8 +2756,8 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
 
     function regroupWrappedResults (results, rowW, rowH) {
       if (!results ||
-        !results[0] ||
-        results[0].type != 'photo' && results[0].type != 'gif' && results[0].type != 'sticker') {
+          !results[0] ||
+          ['photo', 'gif', 'sticker'].indexOf(results[0].type) == -1) {
         return
       }
       var ratios = []
@@ -3350,9 +3417,9 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
       }
 
       if (update._ == 'updateNewMessage' ||
-        update._ == 'updateEditMessage' ||
-        update._ == 'updateNewChannelMessage' ||
-        update._ == 'updateEditChannelMessage') {
+          update._ == 'updateEditMessage' ||
+          update._ == 'updateNewChannelMessage' ||
+          update._ == 'updateEditChannelMessage') {
         var message = update.message
         var toPeerID = AppPeersManager.getPeerID(message.to_id)
         var fwdHeader = message.fwd_from || {}
@@ -4818,6 +4885,7 @@ angular.module('myApp.services', ['myApp.i18n', 'izhukov.utils'])
           // console.warn(dT(), 'server', draft)
         } else {
           // console.warn(dT(), 'local', draft)
+          console.warn(dT(), 'local', draft)
         }
         var replyToMsgID = draft && draft.replyToMsgID
         if (replyToMsgID) {

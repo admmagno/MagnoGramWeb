@@ -2,7 +2,7 @@
   "name": "Unofficial Telegram Web",
   "description": "Unofficial Telegram Web App.\nMore info & source code here: https://github.com/FabianPastor/webogram",
   "web_description": "Welcome to the Unofficial Web application of Telegram messenger. See https://github.com/FabianPastor/webogram for more info.",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "short_name": "Unofficial Telegram",
   "main": "app/index.html",
   "single-instance": true,
@@ -48,7 +48,7 @@
     "nl-nl",
     "pt-br"
   ],
-  "homepage": "https://telegram.org",
+  "homepage": "http://fabianpastor.github.io/webogram",
   "devDependencies": {
     "del": "^1.2.0",
     "event-stream": "^3.1.0",

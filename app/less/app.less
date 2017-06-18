@@ -1415,6 +1415,28 @@ a.im_dialog_selected {
   }
 }
 
+.im_dialog_pinned {
+  display: inline-block;
+  float: right;
+  width: 14px;
+  height: 14px;
+  overflow: hidden;
+  margin: 12px 0 0;
+
+  .image-2x('../img/icons/General.png', 40px, 948px);
+  background-position: -13px -916px;
+  // background-position: -13px -892px;
+
+  a.im_dialog:hover &,
+  a.im_dialog_selected & {
+    background-position: -13px -916px;
+  }
+
+  .active & {
+    background-position: -13px -916px;
+  }
+}
+
 .im_dialog_date {
   color: #b3b3b3;
   font-size: 0.85em;
@@ -2134,6 +2156,13 @@ img.im_message_document_thumb {
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
+}
+.im_service_message_phonecall {
+  color: inherit !important;
+  font-weight: bold;
+}
+.im_service_message_phonecall_duration {
+  font-weight: normal;
 }
 
 .im_message_date,

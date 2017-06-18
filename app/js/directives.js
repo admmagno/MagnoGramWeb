@@ -1,5 +1,5 @@
 /*!
- * Webogram v0.5.5 - messaging web application for MTProto
+ * Webogram v0.5.6 - messaging web application for MTProto
  * https://github.com/zhukov/webogram
  * Copyright (C) 2014 Igor Zhukov <igor.beatle@gmail.com>
  * https://github.com/zhukov/webogram/blob/master/LICENSE
@@ -534,9 +534,26 @@ angular.module('myApp.directives', ['myApp.filters'])
     }
   })
 
-  .directive('myServiceMessage', function () {
+  .directive('myServiceMessage', function (ErrorService, AppMessagesManager) {
     return {
-      templateUrl: templateUrl('message_service')
+      templateUrl: templateUrl('message_service'),
+      scope: {
+        'historyMessage': '=myServiceMessage'
+      },
+      link: link
+    }
+
+    function link ($scope, element, attrs) {
+      $scope.phoneCallClick = function (messageID) {
+        var message = AppMessagesManager.getMessage(messageID)
+        var userID = AppMessagesManager.getMessagePeer(message)
+        ErrorService.show({
+          error: {
+            type: 'PHONECALLS_NOT_SUPPORTED',
+            userID: userID
+          }
+        })
+      }
     }
   })
 

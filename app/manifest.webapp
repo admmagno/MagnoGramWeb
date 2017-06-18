@@ -1,7 +1,7 @@
 {
-  "name": "Unofficial elegram",
+  "name": "Unofficial Telegram",
   "description": "Unofficial Telegram Web App.\nMore info & source code here: https://github.com/FabianPastor/webogram",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "type": "privileged",
   "launch_path": "/index.html",
   "developer": {
